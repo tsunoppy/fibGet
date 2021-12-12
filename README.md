@@ -12,3 +12,8 @@
 
 # Usage
 
+``` SHELL
+> python3 main.py
+```
+
+
