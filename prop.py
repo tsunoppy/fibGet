@@ -233,11 +233,19 @@ class St:
 
         if es == -99:
             self.es = 2.05* 10**5
+            #self.es = 2.05* 10**5 * 0.102
         else:
             self.es = es
         self.fy = fy
 
+        # this is!
+        #self.est = self.es*0.1
+        self.est = self.es
+
         self.ey = self.fy/self.es
+        self.ey2 = self.fy/self.est
+
+        self.es2 = self.es / 100.0
 
         """
         print("# Make Object")
@@ -247,16 +255,26 @@ class St:
         """
 
     ####################
+    # cal. stress corresponding to the input strain
     def sig_s(self,e):
 
-        if e < -self.ey:
-            return -self.fy
+        if e < -self.ey2:
+            return -self.fy - self.es2 * ( abs(e) - self.ey2 )
 
-        elif -self.ey <= e and e <= self.ey:
+        elif -self.ey2 <= e and e <= 0.0:
+            return self.est * e
+
+        elif 0.0 < e and e <= self.ey:
             return self.es * e
 
         elif self.ey < e:
-            return self.fy
+            return self.fy + self.es2 * ( e - self.ey )
+
+    ####################
+    # cal. strain corresponding to the input stress
+    def st_s(self,sig):
+
+        return sig/self.es
 
     ####################
     # 履歴曲線

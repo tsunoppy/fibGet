@@ -152,35 +152,6 @@ class Fiber:
         self.dts_th = yyc - dts
 
     ########################################################################
-    # 部材剛性算定用のコード
-    ########################################################################
-    def memb_p(self,m,p,mm):
-        # m,p: M-Φ関係の配列データ
-        # mm: 曲げモーメント
-        # 線形補間して、曲率を返す。
-
-        for i in range(0,len(m)):
-
-            if mm > m[i]:
-                phai = ( p[i+1] - p[i] )/\
-                    ( m[i+1] - m[i] ) *\
-                        ( mm - m[i] ) + p[i]
-            break;
-
-    def memb_stiffness(self,ll,lp,ndiv,m,p):
-        # ll: 部材長
-        # ndiv: 鉛直の分割数
-        # m,p: M-Φ関係
-        # lp : ヒンジ領域の長さ
-
-        delx = ll/ndiv
-
-        for i in range(0,1000):
-            p = i * delp
-            for i in range(0,ndiv):
-                mi = p * i*delx
-
-    ########################################################################
     # Make Model
     def getModel(self,xx1,xx2,yy1,yy2,ndimx,ndimy,fc,\
                  ids,nx,ny,dtx,dty,dia,fy):
@@ -397,17 +368,25 @@ class Fiber:
 #            print ( i, prop.Conc(self.fc[i]).sig_c(e) )
 
         nns = 0.0
+
+        sigmax = -10000.0
+        sigmin =  10000.0
+
         for i in range(0, len(self.xs) ):
             #sig = prop.St(-99,self.fy[i]).sig_s(e)
             sig = self.prop_obj[self.fy[i]].sig_s(e)
             nns = nns +  sig * self.ra[i]
+
+            # max or min
+            if sig > sigmax: sigmax = sig
+            if sig < sigmin: sigmin = sig
 #            print( i, self.fy[i], self.ra[i], prop.St(-99,self.fy[i]).sig_s(e) )
 
         nnc = nnc/1000.0
         nns = nns/1000.0
         #print(nns,nnc)
 
-        return nns + nnc
+        return ( nns + nnc ), sigmax, sigmin
 
 
     ########################################################################
@@ -419,14 +398,14 @@ class Fiber:
         e1 =  0.001*10**(-2)
         e2 =  0.2*10**(-2)
 
-        kk1 = self.nn0(e1) - nn
-        kk2 = self.nn0(e2) - nn
+        kk1 = self.nn0(e1)[0] - nn
+        kk2 = self.nn0(e2)[0] - nn
 
         for i in range(0,10000):
 
 
-            kk1 = self.nn0(e1) - nn
-            kk2 = self.nn0(e2) - nn
+            kk1 = self.nn0(e1)[0] - nn
+            kk2 = self.nn0(e2)[0] - nn
 
             if abs(kk2) < self.eps2: break;
 
@@ -438,9 +417,12 @@ class Fiber:
 
 
         e0 = e2
+        tmp, sigmax, sigmin = self.nn0(e0)
+        print(sigmax,sigmin)
+
         print("e0 by N, Count=",i, "EPS=", abs(kk2), "e0=", e0,e1)
 
-        return e0
+        return e0, sigmax,sigmin
 
     ########################################################################
     # 圧縮縁の歪みと中立軸からコンター図を作成
@@ -879,7 +861,7 @@ class Fiber:
         self.rotation(0,th)
 
         # initial conctrol
-        e0 = self.e0(nn)
+        e0, sig0max, sig0min = self.e0(nn)
         if e0 > 0 :
             del_e = ( ecumax - e0 ) / (ndiv-1)
         elif e0 <= 0 :
@@ -903,6 +885,16 @@ class Fiber:
         my.append(0.0)
         mm.append(0.0)
 
+        phai2.append(0.0)
+        emax.append(sig0max)
+        emin.append(sig0min)
+        esmax.append(e0)
+        esmin.append(e0)
+
+        # 圧縮歪み
+        ctl_ec = []
+        ctl_ec.append(0.0)
+
         # Calculation
         for i in range(0,ndiv):
 
@@ -914,6 +906,8 @@ class Fiber:
                 e = float(i+1) * del_e
 
             e = e0 + float(i) * del_e
+
+            ctl_ec.append(e)
 
             # 中立軸を求める
             #self.xnn(e,nn,th)
@@ -972,6 +966,26 @@ class Fiber:
         self.view_mp(phai,mm,mx,my,"M","Mx","My",pa,mxa,mya,pu,mux,muy,ax[0],screen[0])
         self.view_steel_stress(phai2,emax,emin,"stress","Max. Stress","Min. Stress",ax[1],screen[0])
         self.view_steel_stress(phai2,esmax,esmin,"strain","Max. Strain","Min. Strain",ax[2],screen[0])
+
+        # data save
+        # Save Model Input
+        ########################################################################
+        savefile = "./db/tmp.csv"
+        lines = "p, mx, my, emax, emin, esmax, esmin, ec, xn\n"
+
+        xn = []
+        xn.append(0.0)
+
+        for i in range(0,len(mx)):
+            if i >= 1:
+                xn.append(ctl_ec[i]/phai[i])
+            lines += str(phai[i]) + "," + str(mx[i]) + "," +  str(my[i]) + \
+                "," + str(emax[i]) + "," + str(emin[i]) + \
+                "," + str(esmax[i]) + "," + str(esmin[i]) + \
+                "," + str(ctl_ec[i]) + "," + str(xn[i]) + "\n"
+
+        #self.out_add(savefile,lines)
+        self.out(savefile,lines)
 
 
 ########################################################################
