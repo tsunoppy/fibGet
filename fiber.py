@@ -13,6 +13,10 @@ import matplotlib.patches as patches
 
 import aijRc
 import prop
+import pandas as pd
+import store
+import sqlite3
+
 
 # File Control
 import os
@@ -67,9 +71,9 @@ class Fiber:
 
         # 収斂計算のための曲率初期値
         self.xnmax = 1.0 * 10 ** (-4)
-        #self.xnmin = 0.5 * 10 ** (-20)
+        #self.xnmax = 1.0 * 10 ** (-5)
         #self.xnmin = 0.0
-        self.xnmin = -1.0 * 10 **(-8)
+        self.xnmin = -1.0 * 10 **(-10)
         #self.xnmin = 0.5 * 10 ** (-5)
 
         # judge criteria
@@ -505,10 +509,10 @@ class Fiber:
         #e2 = 0.3/10**2
 
         # addtional
-        aa, bb, cc, eemax, eemin, eesmax, eesmin\
+        aa, bb, cc, eemax, eemin, eesmax, eesmin, ecmin\
             = self.mm_ec_xn(e1,self.xnn(e1,nn,th,-99),th)
         kk1 = bb - mm
-        aa, bb, cc, eemax, eemin, eesmax, eesmin\
+        aa, bb, cc, eemax, eemin, eesmax, eesmin, ecmin\
             = self.mm_ec_xn(e2,self.xnn(e2,nn,th,-99),th)
         kk2 = bb - nn
         ##
@@ -521,10 +525,10 @@ class Fiber:
             ##
             """
 
-            aa, bb, cc, eemax, eemin, eesmax, eesmin\
+            aa, bb, cc, eemax, eemin, eesmax, eesmin, ecmin\
                 = self.mm_ec_xn(e1,self.xnn(e1,nn,th,-99),th)
             kk1 = bb - mm
-            aa, bb, cc, eemax, eemin, eesmax, eesmin\
+            aa, bb, cc, eemax, eemin, eesmax, eesmin, ecmin\
                 = self.mm_ec_xn(e2,self.xnn(e2,nn,th,-99),th)
             kk2 = bb - nn
 
@@ -543,13 +547,13 @@ class Fiber:
             """
 
 
-
             if abs(kk2) < self.eps: break;
 
             e0 = e2
             e2 = ( kk2*e1 - kk1 * e2 ) / ( kk2 - kk1 )
             # ????
             e2 = abs(e2)
+
             #print(ec0,xn0,xn1,xn2,kk1,kk2)
 #            if abs(xn2 - xn1) > abs(xn2-xn0):
 #                xn1 = xn0
@@ -617,7 +621,7 @@ class Fiber:
 
         #print(es_c,nnc,es_s,nns)
 
-        return xn, (mmcx + mmsx), (mmcy + mmsy), sigmax, sigmin, np.max(es_s), np.min(es_s)
+        return xn, (mmcx + mmsx), (mmcy + mmsy), sigmax, sigmin, np.max(es_s), np.min(es_s), np.min(es_c)
 
     ########################################################################
     # 圧縮歪みと軸力から曲率を逆算
@@ -636,11 +640,19 @@ class Fiber:
             xn2 = self.xnmax
             #####
 
+        elif ctl == -98:
+
+            # addtional
+            xn1 = self.xnmin
+            xn2 = self.xnmax/10.0
+            #####
+
+
         else:
             xn1 = 0.5*ctl
-            xn2 = 2.0*ctl
+            xn2 = 1.5*ctl
 
-            xn1 = self.xnmin
+            #xn1 = self.xnmin
             xn2 = self.xnmax
 
         # addtional
@@ -670,7 +682,9 @@ class Fiber:
             else:
                 xn2 = xn
 
-            #print(i,kk1,kk2,kk)
+            # Check
+            #print(i,kk1,kk2,kk,xn1,xn2)
+
         xn0 = xn
 
         """
@@ -698,92 +712,6 @@ class Fiber:
         return xn0
 
     ########################################################################
-    # M-phai relationship
-    def view_mp(self,phai,mm,mx,my,mmlabel,mxlabel,mylabel,pa,mxa,mya,pu,mux,muy,\
-                ax,screen):
-
-        #fig = plt.figure()
-        #ax = plt.axes()
-
-        #
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-
-        #plt.tick_params(labelsize="9")
-        ax.tick_params(labelsize="8")
-
-        # make graph
-        ax.plot(phai,mm,label="M")
-        ax.plot(phai,np.abs(np.array(mx)),label=mxlabel,marker=".")
-        ax.plot(phai,np.abs(np.array(my)),label=mylabel,marker=".")
-
-        # 短期
-        ax.plot(pa,abs(mxa),marker="s", c="red")
-        ax.plot(pa,abs(mya),marker="s", c="red")
-
-        #終局
-        ax.plot(pu,abs(mux),marker="s", c="red")
-        ax.plot(pu,abs(muy),marker="s", c="red")
-
-        #plt.legend()
-        #plt.grid()
-        ax.legend(fontsize=8)
-        ax.grid()
-
-        ax.set_xlim(0,)
-        ax.set_ylim(0,)
-        #ax.set_xlabel("Curvature [1/mm]",fontsize=8)
-        ax.set_xlabel("Curvature [1/mm]",fontsize=8)
-        #ax.set_ylabel("Bending Moment [kN.m]",fontsize=8)
-        ax.set_title("Bending Moment [kN.m]",loc='left',fontsize=8)
-        ax.ticklabel_format(style="sci",  axis="x",scilimits=(0,0))
-        ax.xaxis.offsetText.set_fontsize(8)
-
-        #ax.hlines([0],"black")
-        #plt.show()
-        #plt.close(fig)
-        screen.draw()
-
-    ########################################################################
-    # Steel bar stress
-    def view_steel_stress(self,phai2,emax,emin,title,emaxlabel,eminlabel,ax,screen):
-
-        # emax
-        #fig = plt.figure()
-        #ax = plt.axes()
-
-        """
-        plt.axes().spines['right'].set_visible(False)
-        plt.axes().spines['top'].set_visible(False)
-        plt.tick_params(labelsize="9")
-        """
-
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        ax.tick_params(labelsize="8")
-
-        ax.plot(phai2,emax,label=emaxlabel,marker=".")
-        ax.plot(phai2,emin,label=eminlabel,marker=".")
-        """
-        plt.legend()
-        plt.grid()
-        """
-        ax.legend(fontsize=8)
-        ax.grid()
-
-        ax.set_xlim(0,)
-        ax.set_xlabel("Curvature [rad/mm]",fontsize=8)
-        #ax.set_ylabel("Steel Bar Strain")
-        ax.set_title(title,loc='left',fontsize=8)
-        ax.ticklabel_format(style="sci",  axis="x",scilimits=(0,0))
-        ax.xaxis.offsetText.set_fontsize(8)
-
-        #plt.show()
-        #plt.close(fig)
-        screen.draw()
-
-
-    ########################################################################
     # 圧縮縁の歪みと軸力から中立軸を求める。
     #    def xn_nn(self,ec0,th,nn):
 
@@ -802,7 +730,7 @@ class Fiber:
         th = th/360.0 * 2.0 * math.pi
         self.rotation(0,th)
         ctl = -99
-        pu , mux, muy, eemax, eemin, eesmax, eesmin\
+        pu , mux, muy, eemax, eemin, eesmax, eesmin, ecmin\
             = self.mm_ec_xn(eu,self.xnn(eu,nn,th,ctl),th)
 
         # make concter
@@ -818,33 +746,116 @@ class Fiber:
 
 
 
+    # 指定した歪みに対する解析
+    # return capacity corresponding to the specified strain
+    ########################################################################
     def solveBySt(self,nn,theta,idr,e,title):
 
         # Ultimate Strength
         ########################################
+        #idr: 0/Compressive fiber
+        #idr: 1/Tensile fiber
+        #idr: 2/Compressive Bar
+        #idr: 3/Tensile Bar
+
+
         th = theta/360.0 * 2.0 * math.pi
         self.rotation(idr,th)
-        ctl = -99
-        pu , mux, muy, eemax, eemin, eesmax, eesmin\
-            = self.mm_ec_xn(e,self.xnn(e,nn,th,ctl),th)
+        if idr == 1:
+            ctl = -98
+            e0, sigmax, sigmin = self.e0(nn)
+        else:
+            ctl = -99
+
+        if idr == 1 and e0 < e:
+            pu = 0.0
+            mux = 0.0
+            muy = 0.0
+            eemax = 0.0
+            eemin = 0.0
+            eesmax = 0.0
+            eesmin = 0.0
+            ecmin = 0.0
+
+        else:
+            pu , mux, muy, eemax, eemin, eesmax, eesmin, ecmin\
+                = self.mm_ec_xn(e,self.xnn(e,nn,th,ctl),th)
 
         comment = "--------------------\n"
         comment += title
         comment += "\n"
-        comment += "e   = {:15.6e} -\n".format(e)
+        comment += "ec  = {:15.6e} -\n".format(e)
+        comment += "es  = {:15.6e} -\n".format(abs(eesmin))
         comment += "φ   = {:15.6e} 1/mm\n".format(pu)
         comment += "mux = {:15.0f} kN.m\n".format(mux)
         comment += "muy = {:15.0f} kN.m\n".format(muy)
 
         #print(comment)
 
-        return comment
+        #return comment,e,eesmin,pu,mux,muy,ecmin
+        return comment, \
+            pu , mux, muy, eemax, eemin, eesmax, eesmin, ecmin\
 
+    ########################################################################
+    # 軸力一定時において、thを動かして、Mx-My関係を求める。
+
+    def mxmy(self,nn,idr,e,ndiv,ax,screen):
+
+        mx = []
+        my = []
+
+        delth = 2.0*math.pi / ndiv
+
+        for i in range(0,ndiv):
+
+            th = i * delth
+            self.rotation(idr,th)
+            ctl = -99
+
+            pu , mux, muy, eemax, eemin, eesmax, eesmin, ecmin\
+                = self.mm_ec_xn(e,self.xnn(e,nn,th,ctl),th)
+
+            mx.append(mux)
+            my.append(muy)
+
+        mx.append(mx[0])
+        my.append(my[0])
+
+        xmax = max( abs(np.max(mx)), abs(np.min(mx)) )
+        ymax = max( abs(np.max(my)), abs(np.min(my)) )
+        xymax = max ( xmax, ymax ) * 1.2
+
+        # plot
+        ####################
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+
+        ax.plot(mx,my)
+        #ax.scatter(mx,my)
+
+        ax.axhline(y=0,color='black',linewidth=0.5,linestyle='--')
+        ax.axvline(x=0,color='black',linewidth=0.5,linestyle='--')
+        ax.legend(fontsize=8)
+        ax.grid()
+
+        ax.set_xlim(-xymax,xymax)
+        ax.set_ylim(-xymax,xymax)
+
+        ax.set_xlabel("Mx [kN.m]",fontsize=8)
+        ax.set_ylabel("My [kN.m]",fontsize=8)
+        ax.tick_params(labelsize="8")
+        ax.set_aspect('equal')
+
+        ax.grid()
+
+        screen.draw()
+
+        return mx,my
 
     ########################################################################
     # Solve Fiber analysis
     # 軸力一定にて、M-φ関係を求める。
-    def solve(self,nn,theta,ecumax,ndiv,eu,esu,ax,screen):
+    def solve(self,nn,theta,ecumax,ndiv,eu,esu,ax,screen,id_cal,dbname,outfile):
         # nn : axial force (kN)
         # theta : angle for the strain to global cordinate
         # eumax : maximum strain of compression
@@ -917,7 +928,7 @@ class Fiber:
 #                    = self.mm_ec_xn(eu,self.xnn(eu,nn,th,ctl),th)
 #                print(aa)
 #                ctl = aa
-            aa, bb, cc, eemax, eemin, eesmax, eesmin\
+            aa, bb, cc, eemax, eemin, eesmax, eesmin, ecmin\
                 = self.mm_ec_xn(e,self.xnn(e,nn,th,ctl),th)
             ctl = aa
             phai.append(aa)
@@ -939,7 +950,8 @@ class Fiber:
         ########################################
         #ea = prop.Conc(fc[0]).ecs(fc[0]*2.0/3.0)
         ea = self.prop_obj[self.fc[0]].ecs(self.mate2[self.fc[0]]*2.0/3.0)
-        pa , mxa, mya, eemax, eemin, eesmax, eesmin\
+        print(ea)
+        pa , mxa, mya, eemax, eemin, eesmax, eesmin, ecmin\
             = self.mm_ec_xn(ea,self.xnn(ea,nn,th,ctl),th)
         print("# Result, at allowable strain")
         print("########")
@@ -950,7 +962,7 @@ class Fiber:
 
         # Ultimate Strength
         ########################################
-        pu , mux, muy, eemax, eemin, eesmax, eesmin\
+        pu , mux, muy, eemax, eemin, eesmax, eesmin, ecmin\
             = self.mm_ec_xn(eu,self.xnn(eu,nn,th,ctl),th)
 
         print("# Result, at ultimate strain")
@@ -961,17 +973,11 @@ class Fiber:
         print("muy = {:15.0f}".format(muy), "kN.m")
 
 
-        # make M-phai relationship, steel bar stress, strain
-        ########################################
-        self.view_mp(phai,mm,mx,my,"M","Mx","My",pa,mxa,mya,pu,mux,muy,ax[0],screen[0])
-        self.view_steel_stress(phai2,emax,emin,"stress","Max. Stress","Min. Stress",ax[1],screen[0])
-        self.view_steel_stress(phai2,esmax,esmin,"strain","Max. Strain","Min. Strain",ax[2],screen[0])
-
         # data save
         # Save Model Input
         ########################################################################
         savefile = "./db/tmp.csv"
-        lines = "p, mx, my, emax, emin, esmax, esmin, ec, xn\n"
+        lines = "p,mx,my,emax,emin,esmax,esmin,ec,xn\n"
 
         xn = []
         xn.append(0.0)
@@ -986,12 +992,199 @@ class Fiber:
 
         #self.out_add(savefile,lines)
         self.out(savefile,lines)
+        self.out(outfile+"mp",lines)
+
+        # making data to sqlite3
+        df = pd.read_csv(savefile)
+        #print(df,len(df))
+        #print(df)
+        table = str(id_cal) + 'mp'
+        obj = store.Store(dbname)
+        obj.make_table(savefile,table)
+
+        """
+        #
+        # plot graph
+        ########################################################################
+        esmax = np.array(esmax) *100
+        esmin = np.array(esmin) *100
+        # make M-phai relationship, steel bar stress, strain
+        ########################################
+        self.view_mp("|M|","Mx","My",pa,mxa,mya,pu,mux,muy,ax[0],screen[0],table,dbname)
+        self.view_steel_stress(phai2,emax,emin,"stress, N/mm2","Max. Stress","Min. Stress",ax[1],screen[0])
+        self.view_steel_stress(phai2,esmax,esmin,"strain, %","Max. Strain","Min. Strain",ax[2],screen[0])
+        """
 
 
 ########################################################################
 # End Class
 
 ########################################################################
+
+class AftFib:
+
+    # example
+    # data plot by sqlite data base
+    ########################################################################
+    # fiber.AftFib('test.db').plotGui(table,ax,screen)
+
+    ########################################################################
+    # initial data
+    def __init__(self,dbname):
+        # dbname: data of sqlite
+        self.dbname = dbname
+
+    ########################################################################
+    # Plot
+    def plotGui(self,id_cal,ax,screen):
+
+        ####################
+        # read data
+
+        df2 = pd.read_csv(self.dbname)
+        cuvmax     = df2.iloc[id_cal,9]
+        mumax      = df2.iloc[id_cal,10]
+        stressmax  = df2.iloc[id_cal,11]
+        strainmax  = df2.iloc[id_cal,12]
+
+        pathname = os.path.dirname(self.dbname)
+        outfile = pathname + "/" + df2.iloc[id_cal,13].replace(' ','')
+        df = pd.read_csv(outfile+"mp")
+
+        if strainmax != -99:
+            strainmax = strainmax*100.0
+
+        #print(df)
+        #print(df["p"])
+
+        # data making
+        p = np.array(df["p"])
+        mx = np.array(df["mx"])
+        my = np.array(df["my"])
+        mxmy = np.sqrt( mx**2 + my**2 )
+        emax = np.array(df["emax"])
+        emin = np.array(df["emin"])
+        esmax = np.array(df["esmax"])*100.0
+        esmin = np.array(df["esmin"])*100.0
+
+        self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax[0],screen[0])
+        self.view_steel_stress(p,emax,emin,"stress, N/mm2","Max. Stress","Min. Stress",cuvmax,stressmax,ax[1],screen[0])
+        self.view_steel_stress(p,esmax,esmin,"strain, %","Max. Strain","Min. Strain",cuvmax,strainmax,ax[2],screen[0])
+
+    ########################################################################
+    # Plot
+    def plotGui2(self,id_cal,ax,screen):
+
+        ####################
+        # read data
+        #dbname = './db/test.db'
+        #table = '0mp'
+        table = str(id_cal)+'mp'
+        conn = sqlite3.connect(self.dbname)
+        df  = pd.read_sql_query('SELECT * FROM "%s"' % table, conn)
+        df2 = pd.read_sql_query('SELECT * FROM "CNTL"', conn)
+
+        cuvmax     = df2.iloc[id_cal,9]
+        mumax      = df2.iloc[id_cal,10]
+        stressmax  = df2.iloc[id_cal,11]
+        strainmax  = df2.iloc[id_cal,12]
+        if strainmax != -99:
+            strainmax = strainmax*100.0
+
+        conn.close()
+        #print(df)
+        #print(df["p"])
+
+        # data making
+        p = np.array(df["p"])
+        mx = np.array(df["mx"])
+        my = np.array(df["my"])
+        mxmy = np.sqrt( mx**2 + my**2 )
+        emax = np.array(df["emax"])
+        emin = np.array(df["emin"])
+        esmax = np.array(df["esmax"])*100.0
+        esmin = np.array(df["esmin"])*100.0
+
+        self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax[0],screen[0])
+        self.view_steel_stress(p,emax,emin,"stress, N/mm2","Max. Stress","Min. Stress",cuvmax,stressmax,ax[1],screen[0])
+        self.view_steel_stress(p,esmax,esmin,"strain, %","Max. Strain","Min. Strain",cuvmax,strainmax,ax[2],screen[0])
+
+    ########################################################################
+    # M-p relationship
+    def view_mp(self,p,mxmy,mx,my,mmlabel,mxlabel,mylabel,xmax,ymax,\
+                ax,screen):
+        # mmlabel,mxlabe,mylabel : label
+        # xmax,ymax: maxmimum axis value ( if == -99 --> auto scale output )
+        # ax,screen: ax = plt.axes(), screen = plt.figure()
+
+        # make graph
+        ax.plot(p,np.abs(np.array(mx)),label=mxlabel,marker=".")
+        ax.plot(p,np.abs(np.array(my)),label=mylabel,marker=".")
+        ax.plot(p,mxmy,label="M")
+
+        #,pa,mxa,mya,pu,mux,muy
+        """
+        # 短期
+        ax.plot(pa,abs(mxa),marker="s", c="red")
+        ax.plot(pa,abs(mya),marker="s", c="red")
+        #終局
+        ax.plot(pu,abs(mux),marker="s", c="red")
+        ax.plot(pu,abs(muy),marker="s", c="red")
+        """
+
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.set_xlabel("Curvature [1/mm]",fontsize=8)
+        ax.set_title("Bending Moment [kN.m]",loc='left',fontsize=8)
+        ax.xaxis.offsetText.set_fontsize(8)
+        ax.tick_params(labelsize="8")
+        ax.ticklabel_format(style="sci", axis="x",scilimits=(0,0))
+        ax.legend(fontsize=8)
+        ax.grid()
+        if xmax == -99:
+            ax.set_xlim(0,)
+        else:
+            ax.set_xlim(0,xmax)
+        if ymax == -99:
+            ax.set_ylim(0,)
+        else:
+            ax.set_ylim(0,ymax)
+
+        #ax.hlines([0],"black")
+        #plt.show()
+        #plt.close(fig)
+        screen.draw()
+
+    ########################################################################
+    # Steel bar stress
+    def view_steel_stress(self,phai2,emax,emin,title,emaxlabel,eminlabel,\
+                          xxmax, yymax,ax,screen):
+
+        ax.plot(phai2,emax,label=emaxlabel,marker=".")
+        ax.plot(phai2,emin,label=eminlabel,marker=".")
+        ax.legend(fontsize=8)
+        ax.grid()
+
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.tick_params(labelsize="8")
+        ax.set_xlabel("Curvature [rad/mm]",fontsize=8)
+        ax.set_title(title,loc='left',fontsize=8)
+        ax.ticklabel_format(style="sci",  axis="x",scilimits=(0,0))
+        ax.xaxis.offsetText.set_fontsize(8)
+
+        if xxmax == -99:
+            ax.set_xlim(0,)
+        else:
+            ax.set_xlim(0,xxmax)
+
+        if yymax != -99:
+            ax.set_ylim(-yymax,yymax)
+
+
+        screen.draw()
+
+
 """
 
 readFile = os.path.join(os.path.dirname(__file__), 'input3.csv')
