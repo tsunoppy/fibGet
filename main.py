@@ -755,6 +755,7 @@ class MyApp(wx.App):
             os.mkdir('./db')
             print('remove ./db/test.db ^v^!')
         else:
+            os.mkdir('./db')
             print('none *db')
 
         """
