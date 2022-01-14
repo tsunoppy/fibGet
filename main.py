@@ -28,6 +28,7 @@ import numpy as np
 
 import report
 import shutil
+import time
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -39,6 +40,7 @@ class MyFrame(gui.MyFrame):
 
 
     # Make report
+    ########################################################################
     def OnReport(self,event):
 
         with wx.FileDialog(self, "Save Pdf File", wildcard="Input File (*.pdf)|*.pdf",
@@ -61,6 +63,7 @@ class MyFrame(gui.MyFrame):
                 print("report No.=",num)
                 title = "sample"
 
+                """
                 self.list_ctrl_input.SetItemState(0,0,wx.LIST_STATE_SELECTED)
                 self.list_ctrl_input.Select(0)
                 for i in range(0,len(df)):
@@ -68,6 +71,17 @@ class MyFrame(gui.MyFrame):
                     if i == len(df)-1:break;
                     self.list_ctrl_input.SetItemState(i,0,wx.LIST_STATE_SELECTED)
                     self.list_ctrl_input.Select(i+1)
+                    time.sleep(1)
+                """
+                #pathname = os.path.dirname(self.text_ctrl_2.GetValue())
+                #outfile = pathname + "/" + df.iloc[id_cal,13].replace(' ','')
+                output_file = self.text_ctrl_2.GetValue()
+                for i in range(0,len(df)):
+                    id_cal = i
+                    ax = 0
+                    screen = 0
+                    fiber.AftFib(output_file,1).plotGui(id_cal,ax,screen)
+
 
                 obj = report.Report(cntl)
                 obj.create_pdf(num,pathname,title)
@@ -189,7 +203,7 @@ class MyFrame(gui.MyFrame):
 
         #table = str(id_cal)+"mp"
         #fiber.AftFib(self.dbname).plotGui(id_cal,ax,screen)
-        fiber.AftFib(output_file).plotGui(id_cal,ax,screen)
+        fiber.AftFib(output_file,0).plotGui(id_cal,ax,screen)
         #obj.solveBySt(nn,theta,0, ecu,"# Ultimate by concrete") # Conの圧縮歪み
         #obj.solveBySt(nn,theta,3,-esu,"# Ultimate by Steel Bar") # 鉄筋の引張歪み
 
@@ -209,7 +223,7 @@ class MyFrame(gui.MyFrame):
         pathname = os.path.dirname(cntl)
         df =  pd.read_csv(cntl)
         imagefile=pathname + "/" + df.iloc[id_cal,13].replace(' ','')
-        print(imagefile)
+        print("save fig. by ", imagefile)
         self.matplotlib_figure2.savefig(imagefile+'mp.png')
         self.matplotlib_figure.savefig(imagefile+'model.png')
 
@@ -439,7 +453,7 @@ class MyFrame(gui.MyFrame):
         if obj.getModel(xx1,xx2,yy1,yy2,ndimx,ndimy,fc,\
                         ids,nx,ny,dtx,dty,dia,fy):
             obj.getG(xx1,xx2,yy1,yy2)
-            obj.viewModel(0.5,ax,screen)
+            obj.viewModel(0.5,ax,screen,outfile)
             print("Complete Model Making")
         else:
             del obj
@@ -577,7 +591,7 @@ class MyFrame(gui.MyFrame):
             # m-p
             #table = str(id_cal)+"mp"
             #fiber.AftFib(self.dbname).plotGui(id_cal,ax,screen)
-            fiber.AftFib(output_file).plotGui(id_cal,ax,screen)
+            fiber.AftFib(output_file,0).plotGui(id_cal,ax,screen)
             # cap
             #conn = sqlite3.connect(self.dbname)
             #table = str(id_cal)+'cap'
@@ -755,6 +769,7 @@ class MyApp(wx.App):
             os.mkdir('./db')
             print('remove ./db/test.db ^v^!')
         else:
+            shutil.rmtree('./db')
             os.mkdir('./db')
             print('none *db')
 

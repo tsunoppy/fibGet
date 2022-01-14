@@ -27,6 +27,11 @@ class Fiber:
     # Init
     def __init__(self,xx1,xx2,yy1,yy2,mate1,mate2):
 
+        # addtional
+        self.xx1 = xx1
+        self.xx2 = xx2
+        self.yy1 = yy1
+        self.yy2 = yy2
         # Control Position
         # 圧縮縁のための位置データ
         self.xpos = []
@@ -180,7 +185,53 @@ class Fiber:
 
     ########################################################################
     # View Model
-    def viewModel(self,r_model,ax,screen):
+    def viewModel(self,r_model,ax,screen,outfile):
+
+        self.viewModelGui(r_model,ax,screen,outfile)
+        screen.draw()
+
+        fig = plt.figure(figsize=(7.5/2.54,7.5/2.54))
+        ax = plt.axes()
+        plt.tight_layout()
+        self.viewModelRep(r_model*100.0,ax,screen,outfile)
+        fig.savefig(outfile+"model.png", dpi=300)
+        print("save fig to",outfile+"model.png")
+
+    ########################################################################
+    def viewModelRep(self,r_model,ax,screen,outfile):
+
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.tick_params(labelsize="8")
+        ax.set_aspect('equal', 'datalim')
+        # Concrete
+
+        #ax.scatter(self.xx1,self.yy1,s=r_model,color="black")
+        # Concrete
+        fib = []
+        for i in range(0,len(self.xx1)):
+            w = self.xx2[i]-self.xx1[i]
+            h = self.yy2[i]-self.yy1[i]
+            fib = patches.Rectangle(xy=(self.xx1[i], self.yy1[i]), width=w, height=h, \
+                                       linewidth="0.5", ec='#000000', color="gray", alpha=0.5 )
+            ax.add_patch(fib)
+
+        # Steel Bar
+        c = []
+        for i in range(0,len(self.xs)):
+            c.append(\
+                     patches.Circle(\
+                                    xy=(self.xs[i],self.ys[i]),\
+                                    radius=self.dia[i]/2.0, ec='r', fill=False ))
+        for i in range(0,len(self.xs)):
+            ax.add_patch(c[i])
+#                                    radius=self.dia[i]/2.0, fc='r', ec='r'))
+        # Gravity Center
+        sg = r_model
+        ax.scatter(self.xg,self.yg, s=sg, color="blue", marker="D")
+
+    ########################################################################
+    def viewModelGui(self,r_model,ax,screen,outfile):
 
         # Fiber Position View
         xmax = max(self.x)
@@ -192,16 +243,11 @@ class Fiber:
 
         #fig = plt.figure(figsize=(4,4))
         #ax = plt.axes()
-        """
-        plt.axes().spines['right'].set_visible(False)
-        plt.axes().spines['top'].set_visible(False)
-        plt.tick_params(labelsize="9")
-        plt.axes().set_aspect('equal')
-        """
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.tick_params(labelsize="8")
-        ax.set_aspect('equal')
+        ax.set_aspect('equal', 'datalim')
+        #ax.set_aspect(1.0/ax.get_data_ratio(),adjustable='box')
 
         # Concrete
         #plot.scatter(self.x,self.y,s=r_model,color="black")
@@ -219,12 +265,18 @@ class Fiber:
 
         # Gravity Center
         sg = r_model*100.0
-        #sg = r_model
-        #plt.scatter(self.xg,self.yg, s=sg, color="blue", marker="D")
         ax.scatter(self.xg,self.yg, s=sg, color="blue", marker="D")
 
-        #plt.tight_layout()
+        """
         screen.draw()
+
+        fig = plt.figure(figsize=(4,4))
+        ax = plt.axes()
+        plt.tight_layout()
+        self.viewModel(r_model,ax,fig,outfile)
+        fig.savefig(outfile+"model.png")
+        print("save fig to",outfile+"model.png")
+        """
 
         #plt.show()
         #plt.close(fig)
@@ -1030,9 +1082,16 @@ class AftFib:
 
     ########################################################################
     # initial data
-    def __init__(self,dbname):
+    def __init__(self,dbname,id_draw):
         # dbname: data of sqlite
+        #         or
+        #         cntl csvfile
         self.dbname = dbname
+        # index of plot function
+        # id_draw == 0 : plot to gui
+        # id_draw == 1 : save figure
+        #id_draw = 0
+        self.id_draw = id_draw
 
     ########################################################################
     # Plot
@@ -1054,10 +1113,7 @@ class AftFib:
         if strainmax != -99:
             strainmax = strainmax*100.0
 
-        #print(df)
-        #print(df["p"])
-
-        # data making
+        # reading data
         p = np.array(df["p"])
         mx = np.array(df["mx"])
         my = np.array(df["my"])
@@ -1067,12 +1123,44 @@ class AftFib:
         esmax = np.array(df["esmax"])*100.0
         esmin = np.array(df["esmin"])*100.0
 
-        self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax[0],screen[0])
-        self.view_steel_stress(p,emax,emin,"stress, N/mm2","Max. Stress","Min. Stress",cuvmax,stressmax,ax[1],screen[0])
-        self.view_steel_stress(p,esmax,esmin,"strain, %","Max. Strain","Min. Strain",cuvmax,strainmax,ax[2],screen[0])
+        # figure.add_subplot(111)
 
+        if self.id_draw == 0:
+
+            self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax[0],screen[0])
+            self.view_steel_stress(\
+                                   p,emax,emin,\
+                                   "stress, N/mm2","Max. Stress","Min. Stress",\
+                                   cuvmax,stressmax,ax[1],screen[0])
+            self.view_steel_stress(p,esmax,esmin,\
+                                   "strain, %","Max. Strain","Min. Strain",\
+                                   cuvmax,strainmax,ax[2],screen[0])
+        else:
+            # ax = self.matplotlib_axes***
+            # screen = self.matplotlib_canvas2
+            #        = figure.add_subplot(111)
+            """
+            figure2 = self.matplotlib_figure2 = Figure(tight_layout=True)
+            self.matplotlib_axes2 = figure2.add_subplot(4,1,(1,2))
+            self.matplotlib_axes3 = figure2.add_subplot(413)
+            self.matplotlib_axes4 = figure2.add_subplot(414)
+            self.matplotlib_canvas2 = FigureCanvas(self, wx.ID_ANY, figure2)
+            """
+            # ax = plt.axes(), screen = plt.figure()
+            screen = plt.figure(figsize=(9/2.54,12/2.54)) # same as fig
+            ax0 = screen.add_subplot(4,1,(1,2))
+            ax1 = screen.add_subplot(413)
+            ax2 = screen.add_subplot(414)
+            self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax0,screen)
+            self.view_steel_stress(p,emax,emin,"stress, N/mm2","Max. Stress","Min. Stress",cuvmax,stressmax,ax1,screen)
+            self.view_steel_stress(p,esmax,esmin,"strain, %","Max. Strain","Min. Strain",cuvmax,strainmax,ax2,screen)
+            #screen.savefig(outfile+"mp.png", dpi=300)
+            screen.savefig(outfile+"mp.png")
+            print("save fig to",outfile+"mp.png")
+
+    """
     ########################################################################
-    # Plot
+    # Plot by sqlite3
     def plotGui2(self,id_cal,ax,screen):
 
         ####################
@@ -1105,9 +1193,25 @@ class AftFib:
         esmax = np.array(df["esmax"])*100.0
         esmin = np.array(df["esmin"])*100.0
 
-        self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax[0],screen[0])
-        self.view_steel_stress(p,emax,emin,"stress, N/mm2","Max. Stress","Min. Stress",cuvmax,stressmax,ax[1],screen[0])
-        self.view_steel_stress(p,esmax,esmin,"strain, %","Max. Strain","Min. Strain",cuvmax,strainmax,ax[2],screen[0])
+        if self.id_draw == 0: # plot to gui
+            self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax[0],screen[0])
+            self.view_steel_stress(p,emax,emin,"stress, N/mm2","Max. Stress","Min. Stress",cuvmax,stressmax,ax[1],screen[0])
+            self.view_steel_stress(p,esmax,esmin,"strain, %","Max. Strain","Min. Strain",cuvmax,strainmax,ax[2],screen[0])
+        else:
+            # ax = self.matplotlib_axes***
+            # screen = self.matplotlib_canvas2
+            #        = figure.add_subplot(111)
+            # ax = plt.axes(), screen = plt.figure()
+            screen = plt.figure() # same as fig
+            ax0 = screen.add_subplot(4,1,(1,2))
+            ax1 = screen.add_subplot(413)
+            ax2 = screen.add_subplot(414)
+            self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax0,screen)
+            self.view_steel_stress(p,emax,emin,"stress, N/mm2","Max. Stress","Min. Stress",cuvmax,stressmax,ax1,screen)
+            self.view_steel_stress(p,esmax,esmin,"strain, %","Max. Strain","Min. Strain",cuvmax,strainmax,ax2,screen)
+            screen.show
+            print("under dev")
+    """
 
     ########################################################################
     # M-p relationship
@@ -1153,7 +1257,13 @@ class AftFib:
         #ax.hlines([0],"black")
         #plt.show()
         #plt.close(fig)
-        screen.draw()
+        if self.id_draw == 0:
+            screen.draw()
+        else:
+            #plt.show()
+            screen.tight_layout()
+            #screen.show()
+            #print("under dev mp??")
 
     ########################################################################
     # Steel bar stress
@@ -1182,11 +1292,16 @@ class AftFib:
             ax.set_ylim(-yymax,yymax)
 
 
-        screen.draw()
-
+        if self.id_draw == 0:
+            screen.draw()
+        #else:
+            #plt.show()
+            #screen.tight_layout()
+            #screen.show()
+            #print("under dev steel??")
+            
 
 """
-
 readFile = os.path.join(os.path.dirname(__file__), 'input3.csv')
 theta,ecumax,ndiv,nn,ecu,esu,\
     mate1,mate2,\

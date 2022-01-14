@@ -84,26 +84,27 @@ class Report():
 
         # Design Condition
         c.setFont(self.FONT_NAME, 9)
-        c.drawString(55, self.ypos(25,y_shift),
+
+        c.drawString(55, self.ypos(27,y_shift),
                      "Capacity:"\
                      )
-        c.drawString(60, self.ypos(27,y_shift),
+        c.drawString(60, self.ypos(29,y_shift),
                      "Mcx = " + mc_x + " kN.m"\
                      )
-        c.drawString(60, self.ypos(28,y_shift),
+        c.drawString(60, self.ypos(30,y_shift),
                      "Max = " + ma_x + " kN.m"\
                      )
-        c.drawString(60, self.ypos(29,y_shift),
+        c.drawString(60, self.ypos(31,y_shift),
                      "Mux = " + mu_x + " kN.m"\
                      )
 
-        c.drawString(180, self.ypos(27,y_shift),
+        c.drawString(180, self.ypos(29,y_shift),
                      "Mcy = " + mc_y + " kN.m"\
                      )
-        c.drawString(180, self.ypos(28,y_shift),
+        c.drawString(180, self.ypos(30,y_shift),
                      "May = " + ma_y + " kN.m"\
                      )
-        c.drawString(180, self.ypos(29,y_shift),
+        c.drawString(180, self.ypos(31,y_shift),
                      "Muy = " + mu_y + " kN.m"\
                      )
 
@@ -112,7 +113,9 @@ class Report():
         imagefile=self.pathname + "/" + df2.iloc[13].replace(' ','') + "mp.png"
         #print("Index=",index2+index)
         #c.drawImage(imagefile, 250,  y_shift + 470, width=5*cm , preserveAspectRatio=True)
-        c.drawImage(imagefile, 300,  y_shift + 280, width=9*cm , preserveAspectRatio=True)
+        #c.drawImage(imagefile, 300,  y_shift + 280, width=9*cm , preserveAspectRatio=True)
+        c.drawImage(imagefile, 300,  y_shift + 345, width=9*cm, preserveAspectRatio=True, mask='auto')
+
         #print(os.listdir('./db'))
         #os.remove(imagefile)
         #print(os.listdir('./db'))
@@ -120,7 +123,8 @@ class Report():
         # model
         #imagefile="./db/"+str(index2+index)+"model.png"
         imagefile=self.pathname + "/" + df2.iloc[13].replace(' ','') + "model.png"
-        c.drawImage(imagefile, 50,  y_shift + 420, width=8*cm , preserveAspectRatio=True)
+        #c.drawImage(imagefile, 50,  y_shift + 420, width=8*cm , preserveAspectRatio=True)
+        c.drawImage(imagefile, 50,  y_shift + 150, width=7.5*cm, preserveAspectRatio=True, mask='auto')
 
     def ypos(self,ipos,y_shift):
         return 730-(ipos-1)*10 + y_shift
