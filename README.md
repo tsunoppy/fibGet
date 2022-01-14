@@ -65,13 +65,20 @@ CW10045,  ./sec/cw1.csv,    0.0, 8466, 0.003, 100, 0.003, 0.01, Fc60/20-D41(SD49
 
 ### 2-1. MATE
 material select
+example
 
-|item|remark|
+``` txt
+#, type, parameter
+MATE, 1, 42.0
+MATE, 2, 490.0
+```
+
+|type|remark|
 |--|:--|
-|num| material number as bellow |
+|type      | material type number as bellow |
 |parameter| parameter |
 
-| num | parameter | remark |
+| type | parameter | remark |
 |:--|:--|:--|
 | =1 | fc(compressive strength) | Concrete (Fafitis and Shah Model) |
 | =2 | fy(yield stress) | Steel Bar ( Bi-Linear) |
@@ -79,6 +86,11 @@ material select
 
 ### 2-2. CAPA
 capacity control
+example
+``` txt
+#,num,fc,num,fy
+CAPA, 1, 28.0, 2, 490.0
+```
 |item| remark |
 |--|:--|
 |num| num. of concrete material |
@@ -108,7 +120,18 @@ FIBE,  1000.0,  950.0, 2000.0, 8500.0,  20, 151, 0
 |yy2| y cordinate / higher right |
 |ndimx| divided num. for x-dir|
 |ndimy| divided num. for y-dir|
-|id   | material num. |
+|fc_id (*1  | material num. |
+
+*1) fc_id -- num. of material card
+``` txt
+#, type, parameter
+MATE, 1, 42.0    -----> num=0
+MATE, 2, 490.0   -----> num=1
+.                -----> num=2
+.                -----> num=3
+.                -----> num=4
+.                -----> num=5
+```
 
 
 ### 2-4. REBA
@@ -131,8 +154,30 @@ REBA, 5,  7, 7, 100, 100, D41, 1
 |dtx| distance the center of the bar from extreem compressive element specified rectanglar shape in x-dir.|
 |dty| distance the center of the bar from extreem compressive element specified rectanglar shape in y-dir.|
 |dia| diameter of the steel bar , "D10" to "D41"|
-|fy_id| material num. |
+|fy_id (*2| material num. |
 
+*1) ids num. of fibe card
+``` txt
+#, xx1,yy1,xx2,yy2,ndimx,ndimy,fc_id
+FIBE,     0.0,    0.0, 1000.0,  950.0,  20, 19, 0  -----> num=0
+FIBE,  1000.0,    0.0, 2000.0,  950.0,  20, 19, 0  -----> num=1
+FIBE,  2000.0,    0.0, 3000.0,  950.0,  20, 19, 0  -----> num=2
+FIBE,     0.0, 8500.0, 1000.0, 9450.0,  20, 19, 0  -----> num=3
+FIBE,  1000.0, 8500.0, 2000.0, 9450.0,  20, 19, 0  -----> num=4
+FIBE,  2000.0, 8500.0, 3000.0, 9450.0,  20, 19, 0  -----> num=5
+FIBE,  1000.0,  950.0, 2000.0, 8500.0,  20, 151, 0 -----> num=6
+```
+
+*2) fy_id -- num. of material card
+``` txt
+#, type, parameter
+MATE, 1, 42.0    -----> num=0
+MATE, 2, 490.0   -----> num=1
+.                -----> num=2
+.                -----> num=3
+.                -----> num=4
+.                -----> num=5
+```
 
 # Source code
 
