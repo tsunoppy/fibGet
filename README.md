@@ -18,7 +18,15 @@
 
 # Input data/ Sample
 
-## control file
+Need two file for the analyis
+
+| file | example file name |
+|:--|:--|
+| control file | cntl.csv |
+| section file | sec.csv |
+
+
+## 1. control file
 example csv data
 
 ``` txt
@@ -46,7 +54,7 @@ CW10045,  ./sec/cw1.csv,    0.0, 8466, 0.003, 100, 0.003, 0.01, Fc60/20-D41(SD49
 ----------------
 
 
-## csvfile/ section file
+## 2. csvfile/ section file
 
 | Item | Control for |
 | -- | :-- |
@@ -55,7 +63,7 @@ CW10045,  ./sec/cw1.csv,    0.0, 8466, 0.003, 100, 0.003, 0.01, Fc60/20-D41(SD49
 |FIBE| concrete fiber model |
 |REBA| steel bar |
 
-### MATE
+### 2-1. MATE
 material select
 
 |item|remark|
@@ -69,7 +77,7 @@ material select
 | =2 | fy(yield stress) | Steel Bar ( Bi-Linear) |
 | =3 | fc(compressive strength) | Concrete (Ignore tension based on num==1)
 
-### CAPA
+### 2-2. CAPA
 capacity control
 |item| remark |
 |--|:--|
@@ -78,7 +86,7 @@ capacity control
 |num| num. of steel bar material |
 |fy | yield strength|
 
-### FIBE
+### 2-3. FIBE
 Concrete fiber geometry
 example
 ``` txt
@@ -103,7 +111,7 @@ FIBE,  1000.0,  950.0, 2000.0, 8500.0,  20, 151, 0
 |id   | material num. |
 
 
-### REBA
+### 2-4. REBA
 steel bar geometry
 example
 ``` txt
