@@ -88,14 +88,14 @@ MATE, 2, 490.0
 capacity control
 example
 ``` txt
-#,num,fc,num,fy
+#,type_c,fc,type_s,fy
 CAPA, 1, 28.0, 2, 490.0
 ```
 |item| remark |
 |--|:--|
-|num| num. of concrete material |
+|type_c| type num. of concrete material |
 |fc | allowable concrete strength |
-|num| num. of steel bar material |
+|type_s| type num. of steel bar material |
 |fy | yield strength|
 
 ### 2-3. FIBE
