@@ -81,6 +81,8 @@ MATE, 2, 490.0
 | =2 | fy(yield stress) | Steel Bar ( Bi-Linear) |
 | =3 | fc(compressive strength) | Concrete (Ignore tension based on num==1)
 
+![Image](./images/conc.png)
+
 ### 2-2. CAPA
 capacity control
 example
