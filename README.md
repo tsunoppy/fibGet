@@ -147,13 +147,16 @@ REBA, 5,  7, 7, 100, 100, D41, 1
 ```
 |item|remark|
 |:--|:--|
-|ids| fiber element num. specified in "FIBE"|
+|ids (\*1| fiber element num. specified in "FIBE"|
 |nx | bar num. in x-dir.|
 |ny | bar num. in y-dir.|
 |dtx| distance the center of the bar from extreem compressive element specified rectanglar shape in x-dir.|
 |dty| distance the center of the bar from extreem compressive element specified rectanglar shape in y-dir.|
 |dia| diameter of the steel bar , "D10" to "D41"|
-|fy_id (*2| material num. |
+|fy_id (\*2| material num. |
+
+  ![fibe](./images/reba.jpeg)
+
 
 *1) ids num. of fibe card
 ``` txt
@@ -166,8 +169,6 @@ FIBE,  1000.0, 8500.0, 2000.0, 9450.0,  20, 19, 0  -----> num=4
 FIBE,  2000.0, 8500.0, 3000.0, 9450.0,  20, 19, 0  -----> num=5
 FIBE,  1000.0,  950.0, 2000.0, 8500.0,  20, 151, 0 -----> num=6
 ```
-
-![fibe](./images/reba.jpeg)
 
 *2) fy_id -- num. of material card
 ``` txt
