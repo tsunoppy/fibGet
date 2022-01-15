@@ -1,6 +1,3 @@
-
-<link href="https://raw.githubusercontent.com/simonlc/Markdown-CSS/master/markdown.css" rel="stylesheet"></link>
-
 # fibGet
 1-D Fiber Model Analysis
 
@@ -18,7 +15,7 @@
 
 # Input data/ Sample
 
-Need two file for the analyis
+Two files are needed for the fiber analyis
 
 | file | example file name |
 |:--|:--|
@@ -133,6 +130,8 @@ MATE, 2, 490.0   -----> num=1
 .                -----> num=5
 ```
 
+![fibe](./images/fibe.jpeg)
+
 
 ### 2-4. REBA
 steel bar geometry
@@ -167,6 +166,8 @@ FIBE,  1000.0, 8500.0, 2000.0, 9450.0,  20, 19, 0  -----> num=4
 FIBE,  2000.0, 8500.0, 3000.0, 9450.0,  20, 19, 0  -----> num=5
 FIBE,  1000.0,  950.0, 2000.0, 8500.0,  20, 151, 0 -----> num=6
 ```
+
+![fibe](./images/reba.jpeg)
 
 *2) fy_id -- num. of material card
 ``` txt
