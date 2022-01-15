@@ -83,6 +83,8 @@ MATE, 2, 490.0
 
 ![Image](./images/conc.png)
 
+![Image](./images/steel.png)
+
 ### 2-2. CAPA
 capacity control
 example
