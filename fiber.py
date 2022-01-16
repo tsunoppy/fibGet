@@ -1220,12 +1220,17 @@ class AftFib:
         # mmlabel,mxlabe,mylabel : label
         # xmax,ymax: maxmimum axis value ( if == -99 --> auto scale output )
         # ax,screen: ax = plt.axes(), screen = plt.figure()
+        if ymax > 100000:
+            ax.yaxis.offsetText.set_fontsize(8)
+            ax.ticklabel_format(style="sci", axis="y",scilimits=(0,0))
 
+
+        #screen.rcParams["font.size"]=8
         # make graph
         ax.plot(p,np.abs(np.array(mx)),label=mxlabel,marker=".")
         ax.plot(p,np.abs(np.array(my)),label=mylabel,marker=".")
         ax.plot(p,mxmy,label="M")
-
+        ax.legend(fontsize=8)
         #,pa,mxa,mya,pu,mux,muy
         """
         # 短期
@@ -1239,11 +1244,12 @@ class AftFib:
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.set_xlabel("Curvature [1/mm]",fontsize=8)
-        ax.set_title("Bending Moment [kN.m]",loc='left',fontsize=8)
+        #ax.set_ylabel("Curvature [1/mm]",fontsize=8)
+        #ax.set_title("Bending Moment [kN.m]",loc='left',fontsize=8)
+        ax.set_title("Bending Moment [kN.m]",loc='center',fontsize=8)
         ax.xaxis.offsetText.set_fontsize(8)
         ax.tick_params(labelsize="8")
         ax.ticklabel_format(style="sci", axis="x",scilimits=(0,0))
-        ax.legend(fontsize=8)
         ax.grid()
         if xmax == -99:
             ax.set_xlim(0,)
