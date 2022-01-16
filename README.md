@@ -110,8 +110,9 @@ CAPA, 1, 28.0, 2, 490.0
 | fy     | N/mm2 | allowable steel bar strength    |
 
 ### 1-2-3. FIBE
-Concrete fiber geometry data
-example
+Concrete fiber geometry data specified as the concrete fiber element by rectanglular shapes.
+
+example data.
 ``` txt
 #, xx1,yy1,xx2,yy2,ndimx,ndimy,fc_id
 FIBE,     0.0,    0.0, 1000.0,  950.0,  20, 19, 0
