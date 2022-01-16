@@ -1,5 +1,0 @@
-title, csvfile, theta, nn, ecumax, ndiv, ecu, esu, come, cuvmax, mumax, stressmax, strainmax, output, cal
-C1_01,  ./input/c1.csv, 0.0,     0.0, 0.005, 30, 0.003, 0.01, Fc30/16-D25(SD345), 2.0E-5, 1000.0, 500.0, 0.02, ./result/C1_01, N
-C1_02,  ./input/c1.csv, 0.0,   800.0, 0.005, 30, 0.003, 0.01, Fc30/16-D25(SD345), 2.0E-5, 1000.0, 500.0, 0.02, ./result/C1_02, N
-C1_03,  ./input/c1.csv, 0.0,  1600.0, 0.005, 30, 0.003, 0.01, Fc30/16-D25(SD345), 2.0E-5, 1000.0, 500.0, 0.02, ./result/C1_03, N
-C1_04,  ./input/c1.csv, 0.0, -2000.0, 0.005, 30, 0.003, 0.01, Fc30/16-D25(SD345), 2.0E-5, 1000.0, 500.0, 0.02, ./result/C1_04, N
