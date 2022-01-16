@@ -13,7 +13,7 @@
 
 ----------------
 
-# Input data/ Sample
+# 1. Input data/ Sample
 
 Two files are needed for the fiber analyis.
 
@@ -31,7 +31,7 @@ Two files are needed for the fiber analyis.
 | section file | sec.csv |
 
 
-## 1. control file
+## 1-1. control file
 example csv data
 
 ``` txt
@@ -59,7 +59,7 @@ CW10045,  ./sec/cw1.csv,    0.0, 8466, 0.003, 100, 0.003, 0.01, Fc60/20-D41(SD49
 ----------------
 
 
-## 2. csvfile/ section file
+## 1-2. csvfile/ section file
 
 Four specified cards are needed.
 
@@ -70,7 +70,7 @@ Four specified cards are needed.
 | FIBE | concrete fiber model |
 | REBA | steel bar            |
 
-### 2-1. MATE
+### 1-2-1. MATE
 material select
 example
 
@@ -95,7 +95,7 @@ MATE, 2, 490.0
 
 ![Image](./images/steel.png)
 
-### 2-2. CAPA
+### 1-2-2. CAPA
 capacity control
 example
 ``` txt
@@ -109,7 +109,7 @@ CAPA, 1, 28.0, 2, 490.0
 | type_s | -     | type num. of steel bar material |
 | fy     | N/mm2 | allowable steel bar strength    |
 
-### 2-3. FIBE
+### 1-2-3. FIBE
 Concrete fiber geometry data
 example
 ``` txt
@@ -147,7 +147,7 @@ MATE, 2, 490.0   -----> num=1
 ![fibe](./images/fibe.jpeg)
 
 
-### 2-4. REBA
+### 1-2-4. REBA
 steel bar geometry data
 example
 ``` txt
@@ -195,9 +195,54 @@ MATE, 2, 490.0   -----> num=1
 .                -----> num=5
 ```
 
-# Source code
+## 2. Output
 
-## Python Scripts
+| outputfile  | content          | remark   |
+|:------------|:-----------------|:---------|
+| \*\*mp      | M-φ relationship | csv file |
+| \*\*cap     | section capacity | csv file |
+| \*model.png | model            | png file |
+| \*mp.png    | M-φ relationship | png file |
+
+### 2-1. \*\*mp file
+
+Header
+``` csv
+p,mx,my,emax,emin,esmax,esmin,ec,xn
+```
+
+| item  | unit  | content                                                  | remark |
+|:------|-------|----------------------------------------------------------|--------|
+| p     | 1/mm  | curvature                                                |        |
+| mx    | kN.m  | bending moment in x-dir.                                 |        |
+| my    | kN.m  | bending moment in y-dir.                                 |        |
+| emax  | N/mm2 | maximum stress in steel bar / compression bar            |        |
+| emin  | N/mm2 | minimum stress in steel bar / testion bar                |        |
+| esmax | -     | maximum strain in steel bar / compression bar            |        |
+| esmin | -     | minimum strain in steel bar / tention bar                |        |
+| ec    | -     | compressive strain of concrete at extreem fiber          |        |
+| xn    | mm     | neutral axis distance from the extreem compressive fiber |        |
+
+
+### 2-2. \*\*cap file
+
+| row | content            |
+|:----|--------------------|
+| 1   | crack stage        |
+| 2   | allowable capacity |
+| 3   | ultimate capacity  |
+
+
+## 3. Report
+fibGet give pdf report by pushing report button
+![Image](./images/report.png)
+
+
+## 4. Source code
+
+coded by ptyhon
+
+### 4-1. Python Scripts
 ``` SHELL
 ├── main.py
 ├── gui.py
@@ -209,7 +254,7 @@ MATE, 2, 490.0   -----> num=1
 
 ```
 
-## Others
+### 4-2. Others
 ``` SHELL
 ├── gui.wxg
 ├── sample_data
@@ -239,13 +284,14 @@ MATE, 2, 490.0   -----> num=1
 │   ├── fibGet.png
 ```
 
-# Usage
+## 5. Usage
 
+### 5-1. for unix
 ``` SHELL
 > python3 main.py
 ```
 
-# For Windows
+### 5-2. For Windows
 By power shell
 ``` DOS
 > pyinstaller main.py --onefile --noconsole --icon=icons/fibGet.ico
