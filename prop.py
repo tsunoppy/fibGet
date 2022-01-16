@@ -156,17 +156,32 @@ class Conc:
     # コンクリートの履歴曲線
     def test(self):
 
-        x = np.arange( self.eu*1.5, self.e0*10, (self.e0-self.eu*4)/100.0 )
+        fig = plt.figure()
+        ax = plt.axes()
+
+        x = np.arange( self.eu*1.5, self.e0*5, (self.e0-self.eu*4)/100.0 )
         y = []
         #print (x)
         for para in x:
             #print(para,self.sig_c(para))
             y.append( self.sig_c(para) )
 
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.set_xlabel("strain")
+        ax.set_ylabel("stress [N/mm2]")
+        plt.tight_layout()
+
+        #ax.xaxis.set_visible(False)
+        #ax.yaxis.set_visible(False)
+
         y = np.array(y)
-        plt.plot(x, y, 'b-')
+        #plt.plot(x, y, 'b-')
+        plt.plot(x, y, 'black')
         plt.grid()
         plt.show()
+
+        #fig.savefig("test.png")
 
     # matoplot
     #https://note.nkmk.me/python-matplotlib-patches-circle-rectangle/
@@ -305,8 +320,8 @@ concrete.test()
 
 steel = St(-99,490)
 steel.test()
-
+"""
 #concrete.image_pdf("test.jpg")
 
 
-"""
+
