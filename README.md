@@ -1,4 +1,4 @@
-n# fibGet
+# fibGet
 1-D Fiber Model Analysis
 
 ![icon](./icon/fibGet.png)
