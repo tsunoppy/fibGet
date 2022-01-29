@@ -277,23 +277,29 @@ class MyFrame(gui.MyFrame):
         comment, pa , ma_x, ma_y, eemax_a, eemin_a, eesmax_a, eesmin_a, ecmin_a =\
             obj.solveBySt(nn,theta,0, eca,"# Allowable by Concrete")
         # 鉄筋の引張歪み
-        if abs(eesmin_a) > esa:
+        if eesmin_a < -esa:
             comment, pa , ma_x, ma_y, eemax_a, eemin_a, eesmax_a, eesmin_a, ecmin_a =\
                 obj.solveBySt(nn,theta,3, -esa,"# Allowable by Steel Bar")
 
         # Ultimate moment
         ####################
         # Conの圧縮歪み
+        #print("ecu=",ecu)
         #comment, ec, es, pu, mux, muy, ecmin =\
             #obj.solveBySt(nn,theta,0, ecu,"# Ultimate by Concrete")
         comment, pu , mux, muy, eemax_u, eemin_u, eesmax_u, eesmin_u, ecmin_u =\
             obj.solveBySt(nn,theta,0, ecu,"# Ultimate by Concrete")
+
+
+        # うまく行かない！
         # 鉄筋の引張歪み
-        if abs(eesmin_u) > esu:
-            #comment, ec, es, pu, mux, muy, ecmin =\
-            #    obj.solveBySt(nn,theta,3,-esu,"# Ultimate by Steel Bar")
+        if eesmin_u < -esu:
+            #print("eesmin_u",eesmin_u,"esu",esu,"bad condition")
+            obj.limitation(-99,pu)
             comment, pu , mux, muy, eemax_u, eemin_u, eesmax_u, eesmin_u, ecmin_u =\
                 obj.solveBySt(nn,theta,3,-esu,"# Ultimate by Steel Bar")
+            obj.limitation(-99,-99)
+
 
         # set of the crack strength
         # crack moment
@@ -762,6 +768,7 @@ class MyFrame(gui.MyFrame):
 # end of class MyFrame
 
 class MyApp(wx.App):
+
     def OnInit(self):
         if os.path.exists('./db/test.db'):
             #os.remove('./db/test.db')

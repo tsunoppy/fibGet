@@ -114,7 +114,7 @@ class Report():
         #print("Index=",index2+index)
         #c.drawImage(imagefile, 250,  y_shift + 470, width=5*cm , preserveAspectRatio=True)
         #c.drawImage(imagefile, 300,  y_shift + 280, width=9*cm , preserveAspectRatio=True)
-        c.drawImage(imagefile, 300,  y_shift + 345, width=9*cm, preserveAspectRatio=True, mask='auto')
+        c.drawImage(imagefile, 300,  y_shift - 130, width=9*cm, preserveAspectRatio=True, mask='auto')
 
         #print(os.listdir('./db'))
         #os.remove(imagefile)

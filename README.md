@@ -302,3 +302,6 @@ By power shell
 ```
 
 # Develop memo
+## 2022.01.28 modified, m_()_m
+- modified script for the ultimate capacity at steel stress limitation.
+- modifed linestyle, width, color in matplot

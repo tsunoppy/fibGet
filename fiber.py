@@ -10,6 +10,7 @@ from openpyxl.utils import get_column_letter # 列幅の指定 2020/05/27
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from matplotlib.ticker import ScalarFormatter
 
 import aijRc
 import prop
@@ -112,6 +113,28 @@ class Fiber:
         self.y_yg   = []
         self.xs_xg  = []
         self.ys_yg  = []
+
+
+    ########################################################################
+    # 収斂計算をする範囲を切り替える
+    # 2022.01.28 added scripts
+    def limitation(self,kappa_min,kappa_max):
+
+        # kappa_min : minimum curvature (1/mm)
+        # kappa_max : maximum curvature (1/mm)
+
+        if kappa_min == -99 and kappa_max == -99:
+            self.xnmax = 1.0 * 10 ** (-4)
+            self.xnmin = -1.0 * 10 **(-10)
+        elif kappa_min == -99 and kappa_max != -99:
+            self.xnmax = kappa_max
+        elif kappa_min != -99 and kappa_max != -99:
+            self.xnmin = kappa_min
+            self.xnmax = kappa_max
+        elif kappa_min != -99 and kappa_max == -99:
+            self.xnmin = kappa_min
+        else:
+            print("Err. fiber.limitation!!! " )
 
     ########################################################################
     # 圧縮縁を求め、回転軸から相対座標を作成
@@ -837,12 +860,17 @@ class Fiber:
         comment += title
         comment += "\n"
         comment += "ec  = {:15.6e} -\n".format(e)
-        comment += "es  = {:15.6e} -\n".format(abs(eesmin))
+        comment += "es  = {:15.6e} -\n".format(eesmin)
         comment += "φ   = {:15.6e} 1/mm\n".format(pu)
         comment += "mux = {:15.0f} kN.m\n".format(mux)
         comment += "muy = {:15.0f} kN.m\n".format(muy)
 
-        #print(comment)
+        print(comment)
+
+        """
+        # addtional parameter for the steel bar strained, if specified
+        self.parameter = pu
+        """
 
         #return comment,e,eesmin,pu,mux,muy,ecmin
         return comment, \
@@ -1123,15 +1151,27 @@ class AftFib:
         esmax = np.array(df["esmax"])*100.0
         esmin = np.array(df["esmin"])*100.0
 
+
+        # for capacity
+        df2 = pd.read_csv(outfile+"cap")
+        p_cap = np.array(df2["p"])
+        mx_cap = np.array(df2["mx"])
+        my_cap = np.array(df2["my"])
+
+        print(df2)
+
         # figure.add_subplot(111)
 
         if self.id_draw == 0:
 
-            self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax[0],screen[0])
+            self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax[0],screen[0],\
+                         p_cap,mx_cap,my_cap)
+
             self.view_steel_stress(\
                                    p,emax,emin,\
                                    "stress, N/mm2","Max. Stress","Min. Stress",\
                                    cuvmax,stressmax,ax[1],screen[0])
+
             self.view_steel_stress(p,esmax,esmin,\
                                    "strain, %","Max. Strain","Min. Strain",\
                                    cuvmax,strainmax,ax[2],screen[0])
@@ -1151,11 +1191,11 @@ class AftFib:
             ax0 = screen.add_subplot(4,1,(1,2))
             ax1 = screen.add_subplot(413)
             ax2 = screen.add_subplot(414)
-            self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax0,screen)
+            self.view_mp(p,mxmy,mx,my,"|M|","Mx","My",cuvmax,mumax,ax0,screen,p_cap,mx_cap,my_cap)
             self.view_steel_stress(p,emax,emin,"stress, N/mm2","Max. Stress","Min. Stress",cuvmax,stressmax,ax1,screen)
             self.view_steel_stress(p,esmax,esmin,"strain, %","Max. Strain","Min. Strain",cuvmax,strainmax,ax2,screen)
             #screen.savefig(outfile+"mp.png", dpi=300)
-            screen.savefig(outfile+"mp.png")
+            screen.savefig(outfile+"mp.png",dpi=300)
             print("save fig to",outfile+"mp.png")
 
     """
@@ -1216,20 +1256,25 @@ class AftFib:
     ########################################################################
     # M-p relationship
     def view_mp(self,p,mxmy,mx,my,mmlabel,mxlabel,mylabel,xmax,ymax,\
-                ax,screen):
+                ax,screen,\
+                p_cap,mx_cap,my_cap):
         # mmlabel,mxlabe,mylabel : label
         # xmax,ymax: maxmimum axis value ( if == -99 --> auto scale output )
         # ax,screen: ax = plt.axes(), screen = plt.figure()
         if ymax > 100000:
             ax.yaxis.offsetText.set_fontsize(8)
+            ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
             ax.ticklabel_format(style="sci", axis="y",scilimits=(0,0))
+
 
 
         #screen.rcParams["font.size"]=8
         # make graph
-        ax.plot(p,np.abs(np.array(mx)),label=mxlabel,marker=".")
-        ax.plot(p,np.abs(np.array(my)),label=mylabel,marker=".")
-        ax.plot(p,mxmy,label="M")
+        ax.plot(p,np.abs(np.array(mx)),label=mxlabel,marker=".",c='black',)
+        ax.plot(p,np.abs(np.array(my)),label=mylabel,marker=".",c='black',markerfacecolor='None',linewidth = 0.5)
+        ax.scatter(p_cap,np.abs(np.array(mx_cap)),label="capacity,mx",color="r",marker="s")
+        ax.scatter(p_cap,np.abs(np.array(my_cap)),label="capacity,my",color="b",marker="D")
+        #ax.plot(p,mxmy,label="M",marker="None",c='red')
         ax.legend(fontsize=8)
         #,pa,mxa,mya,pu,mux,muy
         """
@@ -1249,6 +1294,7 @@ class AftFib:
         ax.set_title("Bending Moment [kN.m]",loc='center',fontsize=8)
         ax.xaxis.offsetText.set_fontsize(8)
         ax.tick_params(labelsize="8")
+        ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
         ax.ticklabel_format(style="sci", axis="x",scilimits=(0,0))
         ax.grid()
         if xmax == -99:
@@ -1276,8 +1322,8 @@ class AftFib:
     def view_steel_stress(self,phai2,emax,emin,title,emaxlabel,eminlabel,\
                           xxmax, yymax,ax,screen):
 
-        ax.plot(phai2,emax,label=emaxlabel,marker=".")
-        ax.plot(phai2,emin,label=eminlabel,marker=".")
+        ax.plot(phai2,emax,label=emaxlabel,marker=".",c='black',markerfacecolor='None',linestyle="dotted")
+        ax.plot(phai2,emin,label=eminlabel,marker=".",c='black')
         ax.legend(fontsize=8)
         ax.grid()
 
@@ -1286,6 +1332,7 @@ class AftFib:
         ax.tick_params(labelsize="8")
         ax.set_xlabel("Curvature [rad/mm]",fontsize=8)
         ax.set_title(title,loc='left',fontsize=8)
+        ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
         ax.ticklabel_format(style="sci",  axis="x",scilimits=(0,0))
         ax.xaxis.offsetText.set_fontsize(8)
 

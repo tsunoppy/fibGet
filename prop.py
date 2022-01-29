@@ -313,9 +313,6 @@ class St:
 # imput data
 
 """
-fc = 60.
-concrete = Conc(60.0)
-concrete.test()
 
 
 steel = St(-99,490)
@@ -323,5 +320,15 @@ steel.test()
 """
 #concrete.image_pdf("test.jpg")
 
+"""
+fc = 80.
+concrete = Conc(80.0)
+concrete.test()
+
+"""
+"""
+steel = St(-99,490)
+steel.test()
+"""
 
 
