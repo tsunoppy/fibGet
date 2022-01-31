@@ -56,8 +56,10 @@ CW10045,  ./sec/cw1.csv,    0.0, 8466, 0.003, 100, 0.003, 0.01, Fc60/20-D41(SD49
  | strainmax | 0.02               | graph control/(-99:auto): steel bar strain (-)     |
  | output    | ./result/CW10045   | output file name/ need make result dir.            |
  | cal       | Y or N             | Y: Done Analysis, N: Need Analysis                 |
-----------------
 
+![Image](./images/angle.png "angle")
+
+----------------
 
 ## 1-2. csvfile/ section file
 
