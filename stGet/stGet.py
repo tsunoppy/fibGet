@@ -1,0 +1,261 @@
+import math
+#import sympy as sym
+
+# try
+#from scipy import optimize
+import scipy.optimize
+import matplotlib.pyplot as plt
+
+
+class stGet:
+
+    ########################################################################
+    def __init__(self,b,d,dt,as1,as2,nYoung):
+
+        # set parameter
+        self.b = b
+        self.d = d
+        self.d1 = d - dt
+        self.d2 = dt
+        self.as1 = as1
+        self.as2 = as2
+        self.nY= nYoung
+
+        # inital cal
+        self.gamma = self.d2/self.d1
+        self.p1 = as1/(b*self.d1)
+        self.p2 = as2/(b*self.d1)
+
+        # section prop.
+        yc = 0.5 * self.b * self.d**2\
+            + self.nY * ( self.as1 * self.d1 + self.as2 * self.d2 )
+        self.yc = yc/(\
+                 self.b * self.d + self.nY * ( self.as1 + self.as2 ) )
+        self.yt = self.d - self.yc
+
+        self.ag = self.b * self.d * ( 1.0 + self.nY*(self.p1+self.p2) )
+
+        ig = self.as1*(self.d1-self.yc)**2 \
+            + self.as2*(self.yc-self.d2)**2
+        ig = self.nY * ig
+        ig = 1.0/3.0 * self.b * (self.yc**3 + self.yt**3) + ig
+        self.ig  = ig
+
+        #out
+        print("yc=",self.yc)
+        print("yt=",self.yt)
+        print("ag=",self.ag)
+        print("ig=",self.ig)
+        print("kc=",self.ig/self.ag/self.yt)
+        print("kt=",self.ig/self.ag/self.yc)
+
+
+    ########################################################################
+    def cal_alleff(self,nd,md):
+
+        sigc = nd*10**3 / self.ag + md*10**6/self.ig * self.yc
+        sigt = nd*10**3 / self.ag - md*10**6/self.ig * self.yt
+        sigs1 = self.nY*( sigc - self.d2/self.d*(sigc-sigt) )
+        sigs2 = self.nY*( sigc - self.d1/self.d*(sigc-sigt) )
+
+        """
+        print("σc =",sigc,"N/mm2")
+        print("σt =",sigt,"N/mm2")
+        print("σs1=",sigs1,"N/mm2")
+        print("σs2=",sigs2,"N/mm2")
+        """
+
+        return sigc,sigt,sigs1,sigs2
+
+    ########################################################################
+
+    def cal(self,nd,md):
+
+        e = md/nd * 10**3 - self.d/2.0
+        delta = e/self.d1
+
+        #sym.var('x')
+
+        a = 3.0 * delta
+        b = self.nY * self.p1 * ( 1.0 + delta )\
+            + self.nY * self.p2 * ( self.gamma + delta )
+        b = 6.0 * b
+        c = self.nY * self.p1 * ( 1.0 + delta )\
+            + self.nY * self.p2 * self.gamma * ( self.gamma + delta )
+        c = -6.0 * c
+
+
+        """
+        # solve
+        s = sym.solve( x**3 + a*x**2 + b*x + c , x )
+        print(s)
+        print(s[0])
+        # transform
+        xn = s[0] * self.d1
+        k  = s[0]
+        print("xn=",xn,"mm")
+        """
+
+        def func_f(u):
+            return u**3 + a*u**2 + b*u + c
+
+        #print(func_f(0.01),func_f(1.5))
+        k = scipy.optimize.bisect(func_f,0.01,1.5)
+        #k = scipy.optimize.bisect(func_f,self.d2/self.d1+0.01,1)
+        # transform
+        xn = k * self.d1
+
+        # stress in steel bar
+        sigc = 0.5*k - self.nY * self.p1 * ( 1.0 - k ) /k\
+            + self.nY * self.p2 * ( k - self.gamma ) / k
+        sigc = nd*1000.0/(self.b*self.d1) / sigc
+        sigs1 = ( 1.0/k - 1.0 )* self.nY * sigc
+        sigs2 = ( 1.0 - self.gamma/k )* self.nY * sigc
+
+        """
+        print("k=",k,"-")
+        print("xn=",xn,"mm")
+        print("σc =",sigc,"N/mm2")
+        print("σs1=",sigs1,"N/mm2")
+        print("σs2=",sigs2,"N/mm2")
+        """
+
+        return sigc,0.0,sigs1,sigs2,xn
+
+    ########################################################################
+    # 軸力一定で、M-p関係を求める。
+    def mp(self,nd):
+
+        div_m = 1.0 # kN.m
+        ndiv = 1000000
+
+        p = []
+        m = []
+        t = []
+
+        mc = [0.0]
+        th = [0.0]
+        kkk = 1
+
+        for i in range(0,ndiv):
+
+            md = float(i) * div_m
+
+            sigc,sigt,sigs1,sigs2 =\
+                self.cal_alleff(nd,md)
+
+
+            ##########
+            # judge
+            #if sigt < -3.7:
+            if sigs2 < 0.0:
+                if kkk == 1:
+                    mc.append(md)
+                    th.append(0.0)
+                    kkk = 2
+            #if sigt < 0.0:
+                sigc,sigt,sigs1,sigs2,xn =\
+                    self.cal(nd,md)
+                #p.append(xn)
+                p.append(2.39/490*sigs1/(self.d-xn))
+                t.append(sigs1)
+
+            else:
+                p.append(0.0)
+                t.append(-sigs2)
+
+            ##########
+            # save
+            """
+            print("i=",i,"md=",md)
+            print("xn =",xn,"mm")
+            print("σc =",sigc,"N/mm2")
+            print("σt =",sigt,"N/mm2")
+            print("σs1=",sigs1,"N/mm2")
+            print("σs2=",sigs2,"N/mm2")
+            """
+
+
+            m.append(md)
+
+            if sigs1 > 490.0 :
+                mc.append(md)
+                th.append(2.39/490*sigs1/(self.d-xn))
+
+                break;
+
+
+
+        return th,mc,p,m
+
+    ########################################################################
+    def total(self,ks):
+
+
+        ex_th = [0.0,10000/ks]
+        ex_md = [0.0,10000.0]
+        set_nd = [500,2500,5000,7500,10000,15000,20000,25000]
+
+
+        fig = plt.figure(figsize=(6,8))
+        ax = fig.add_subplot(2,1,1)
+        ax2 = fig.add_subplot(2,1,2)
+
+        def mtof(x):
+            return 1.0/x
+        def ftom(x):
+            return 1.0/x
+
+        ax.set_xlim(-0.001,0.005)
+        #ax.secondary_xaxis('top', functions=(mtof,ftom))
+
+        ax2.set_ylim(0,50000)
+
+        for nd in set_nd:
+            th,mc,p,m = self.mp(nd)
+            print(nd,mc[1],mc[2])
+            #ax.plot(t,m)
+            ax.plot(p,m,label="nd="+str(nd))
+            ax.scatter(th,mc)
+
+            ax2.scatter(mc[1],nd)
+            ax2.scatter(mc[2],nd)
+
+        ax.plot(ex_th,ex_md,label="exposed, L=500mm")
+
+        ax.legend(fontsize="8")
+        ax.set_xlabel('angle [rad]')
+        ax.set_ylabel('Bending Moment M [kN.m]')
+        ax.grid()
+        plt.tight_layout()
+        plt.show()
+        plt.close()
+
+
+if __name__ == '__main__':
+
+
+    b = 1000.0
+    d = 1000.0
+    dt = 120.0
+    as1 = 1340.0 * 9.0
+    as2 = as1
+
+    fc = 60.0
+    ec = 4700.0 * math.sqrt(fc)
+    nYoung = 2.05 * 10**5 / ec
+    print(nYoung)
+
+    ks = 2.05*10**5 * as1 * ( d-2*dt )**2 / 2 / 500.0
+    ks = ks/10**6
+    print(ks)
+    
+    nd = 5000.0
+    md = 2000.0
+
+    col = stGet(b,d,dt,as1,as2,nYoung)
+    #col.cal(nd,md)
+    #print("######okay?")
+    #col.cal_alleff(nd,md)
+    col.mp(nd)
+    col.total(ks)
