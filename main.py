@@ -308,9 +308,9 @@ class MyFrame(gui.MyFrame):
         mc_y = 0.0
         #print(ecmin,ect)
         if ecmin_u < ect:
-            print("ecmin_u",ecmin_u,"ect",ect)
+            print("solve, crack","ecmin_u",ecmin_u,"ect",ect)
             comment, pc , mc_x, mc_y, eemax_c, eemin_c, eesmax_c, eesmin_c, ecmin_c =\
-                obj.solveBySt(nn,theta,1, ect,"# Concrete Crack")
+                obj.solveBySt(nn,theta,1,ect,"# Concrete Crack")
 
         df = pd.DataFrame(np.arange(27).reshape(3,9),
                           columns=['p','mx','my','emax','emin','esmax','esmin','ec','xn'])
@@ -343,6 +343,55 @@ class MyFrame(gui.MyFrame):
         self.text_ctrl_mux.SetValue("{:.0f}".format(mux))
         self.text_ctrl_muy.SetValue("{:.0f}".format(muy))
 
+    ########################################################################
+    # M-N Relatinoship
+    def OnMn(self,event):
+
+        id_cal,csvfile,\
+            theta,ecumax,ndiv,nn,ecu,esu,\
+            mate1,mate2,\
+            xx1,yy1,xx2,yy2,ndimx,ndimy,fc,\
+            ids,nx,ny,dtx,dty,dia,fy,\
+            ibc,fbc,ibt,fbt,outfile\
+            =\
+            self.read_data()
+
+        obj = fiber.Fiber(xx1,xx2,yy1,yy2,mate1,mate2)
+        if obj.getModel(xx1,xx2,yy1,yy2,ndimx,ndimy,fc,\
+                        ids,nx,ny,dtx,dty,dia,fy):
+            obj.getG(xx1,xx2,yy1,yy2)
+            #obj.viewModel(0.5)
+            print("Complete Model Making")
+        else:
+            del obj
+            obj = Fiber()
+            dlg = wx.MessageDialog(self, 'Erro input',
+                                   'Error input',
+                                   wx.OK | wx.ICON_ERROR
+                                   )
+            dlg.ShowModal()
+            dlg.Destroy()
+            print("Fail Model Making")
+
+        # Spec
+        ax     = self.matplotlib_axes
+        screen = self.matplotlib_canvas
+        self.matplotlib_axes.clear()
+        self.matplotlib_canvas.draw()
+
+        #div = 32
+        div = 16
+        #obj.mxmy(nn,0,ecu,div,ax,screen)
+        # concrete
+        for i in range(0,len(mate1)):
+            if mate1[i] == ibc:
+                eca = prop.Conc(mate2[i]).ecs(fbc)
+                ect = prop.Conc(mate2[i]).ect()
+                print(mate2[i],fbc)
+            if mate1[i] == ibt:
+                esa = prop.St(-99,mate2[i]).st_s(fbt)
+
+        obj.mnGen(div,theta,nn,ecu,esu,esa,ax,screen)
 
     ########################################################################
     # Mx-My Relationship
@@ -382,8 +431,20 @@ class MyFrame(gui.MyFrame):
         self.matplotlib_axes.clear()
         self.matplotlib_canvas.draw()
 
-        div = 32
-        obj.mxmy(nn,0,ecu,div,ax,screen)
+        #div = 32
+        div = 16
+        #obj.mxmy(nn,0,ecu,div,ax,screen)
+        # concrete
+        for i in range(0,len(mate1)):
+            if mate1[i] == ibc:
+                eca = prop.Conc(mate2[i]).ecs(fbc)
+                ect = prop.Conc(mate2[i]).ect()
+                print(mate2[i],fbc)
+            if mate1[i] == ibt:
+                esa = prop.St(-99,mate2[i]).st_s(fbt)
+
+        obj.mxmy_double(div,nn,ecu,esu,esa,ax,screen)
+        #obj.mnGen(div,theta,nn,ecu,esu,esa,ax,screen)
         #obj.mxmy(nn,3,-esu,16)
 
     ########################################################################
@@ -463,7 +524,8 @@ class MyFrame(gui.MyFrame):
             print("Complete Model Making")
         else:
             del obj
-            obj = Fiber()
+            obj = fiber.Fiber(xx1,xx2,yy1,yy2,mate1,mate2)
+            #obj = Fiber()
             dlg = wx.MessageDialog(self, 'Erro input',
                                    'Error input',
                                    wx.OK | wx.ICON_ERROR

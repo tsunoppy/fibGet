@@ -253,6 +253,7 @@ class St:
             self.es = es
         self.fy = fy
 
+        # tension
         # this is!
         #self.est = self.es*0.1
         self.est = self.es
@@ -260,7 +261,8 @@ class St:
         self.ey = self.fy/self.es
         self.ey2 = self.fy/self.est
 
-        self.es2 = self.es / 100.0
+        # 2nd elastic modulus
+        self.es2 = self.es / 1000.0
 
         """
         print("# Make Object")
@@ -273,16 +275,16 @@ class St:
     # cal. stress corresponding to the input strain
     def sig_s(self,e):
 
-        if e < -self.ey2:
+        if e < -self.ey2: # tension
             return -self.fy - self.es2 * ( abs(e) - self.ey2 )
 
-        elif -self.ey2 <= e and e <= 0.0:
+        elif -self.ey2 <= e and e <= 0.0: # tension
             return self.est * e
 
-        elif 0.0 < e and e <= self.ey:
+        elif 0.0 < e and e <= self.ey: # compression
             return self.es * e
 
-        elif self.ey < e:
+        elif self.ey < e: # compression
             return self.fy + self.es2 * ( e - self.ey )
 
     ####################
@@ -295,7 +297,7 @@ class St:
     # 履歴曲線
     def test(self):
 
-        x = np.arange( -self.ey*20.0, self.ey*20.0, self.ey/100.0 )
+        x = np.arange( -self.ey*20.0, self.ey*20.0, self.ey/1000.0 )
         y = []
         #print (x)
         for para in x:

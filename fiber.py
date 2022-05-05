@@ -58,6 +58,7 @@ class Fiber:
         self.mate2 = mate2
         #print(mate1,mate2)
         self.prop_obj = []
+
         for i in range(0,len(mate1)):
 
             if mate1[i] == 1 :
@@ -340,6 +341,13 @@ class Fiber:
             self.ra.append( aijRc.Aij_rc_set().Ra(dia) )
 
         print("Created Steel Bar Prop.")
+        fy = []
+        for i in range(0,len(self.fy)):
+            fy.append(self.mate2[self.fy[i]])
+        self.nut = -np.dot( np.array(fy) , np.array(self.ra) )
+        print("Nut=",self.nut,)
+        self.etmin = self.nut/np.sum(self.ra)/(2.05*10**5)
+        print(self.etmin)
 
     ########################################################################
     # Make Model Matrix
@@ -474,18 +482,21 @@ class Fiber:
     def e0(self,nn):
 
         #eps = 10 ** (-3) # judge of the itelation
-        e1 =  0.001*10**(-2)
-        e2 =  0.2*10**(-2)
+        #e1 =  0.001*10**(-2)
+        e1 = self.etmin
+        e2 =  0.3*10**(-2)
 
         kk1 = self.nn0(e1)[0] - nn
         kk2 = self.nn0(e2)[0] - nn
 
         for i in range(0,10000):
 
+            e = 0.5 * ( e1 + e2 )
 
             kk1 = self.nn0(e1)[0] - nn
             kk2 = self.nn0(e2)[0] - nn
 
+            """
             if abs(kk2) < self.eps2: break;
 
             e0 = e2
@@ -493,9 +504,19 @@ class Fiber:
 #            if abs(e2 - e1) > abs(e2-e0):
 #                e1 = e0
             e1 = e0
+            #print(i,kk2+nn)
+            """
+
+            kk = self.nn0(e)[0] - nn
+            if abs(kk) < self.eps: break;
+            if kk * kk1 > 0 :
+                e1 = e
+            else:
+                e2 = e
 
 
-        e0 = e2
+        #e0 = e2
+        e0 = e
         tmp, sigmax, sigmin = self.nn0(e0)
         print(sigmax,sigmin)
 
@@ -836,13 +857,14 @@ class Fiber:
 
         th = theta/360.0 * 2.0 * math.pi
         self.rotation(idr,th)
+
         if idr == 1:
             ctl = -98
             e0, sigmax, sigmin = self.e0(nn)
         else:
             ctl = -99
 
-        if idr == 1 and e0 < e:
+        if idr == 1 and e0 <= e:
             pu = 0.0
             mux = 0.0
             muy = 0.0
@@ -876,8 +898,154 @@ class Fiber:
         return comment, \
             pu , mux, muy, eemax, eemin, eesmax, eesmin, ecmin\
 
+
+    ########################################################################
+    # mn generator
+    # under dev
+    def mnGen(self,ndiv,theta,nn,ecu,esu,esa,ax,screen):
+
+        #ax.clear()
+
+        #fig2 = plt.figure()
+        #ax  = plt.axes()
+
+        nd = []
+        numin = self.nut/10**3
+        numax = self.nn0(ecu)[0]
+
+        nd.append(self.nut/10**3)
+        mx = [0.0]
+        my = [0.0]
+
+        deln = (numax-numin)/(ndiv+1)
+
+        for i in range(0,ndiv):
+
+            nn = numin + deln * float(i+1)
+            comment, pu , mux, muy, eemax_u, eemin_u, eesmax_u, eesmin_u, ecmin_u =\
+                self.solveBySt(nn,theta,0, ecu,"# Ultimate by Concrete")
+
+
+            mx.append(mux)
+            my.append(muy)
+            nd.append(nn)
+
+        mx.append(0.0)
+        my.append(0.0)
+        nd.append(numax)
+
+
+        # plot
+        ####################
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+
+        ax.plot(np.abs(mx),nd,label='Mx',c='black')
+        ax.plot(np.abs(my),nd,label='My',c='black',linestyle='dotted')
+        #ax.scatter(mx,my)
+
+        #ax.axhline(y=0,color='black',linewidth=0.5,linestyle='--')
+        #ax.axvline(x=0,color='black',linewidth=0.5,linestyle='--')
+        ax.legend(fontsize=8)
+
+        ax.set_xlim(0,)
+
+        ax.set_xlabel("Bending Moment [kN.m]",fontsize=8)
+        ax.set_ylabel("Axial Force [kN]",fontsize=8)
+        ax.tick_params(labelsize="8")
+        ax.grid()
+        ax.set_aspect('auto')
+
+        screen.draw()
+        #plt.show()
+
+
+    ########################################################################
+    def mxmy_double(self,ndiv,nn,ecu,esu,esa,ax,screen):
+
+        mx = []
+        my = []
+
+        mx2 = []
+        my2 = []
+
+        delth = 360.0 / ndiv
+
+        for i in range(0,ndiv):
+
+            theta = i * delth
+
+            print("angle = ",theta,"!!!")
+
+            comment, pu , mux, muy, eemax_u, eemin_u, eesmax_u, eesmin_u, ecmin_u =\
+                self.solveBySt(nn,theta,0, ecu,"# Ultimate by Concrete")
+
+            if eesmin_u < -esu:
+            #print("eesmin_u",eesmin_u,"esu",esu,"bad condition")
+                self.limitation(-99,pu)
+                comment, pu , mux, muy, eemax_u, eemin_u, eesmax_u, eesmin_u, ecmin_u =\
+                    self.solveBySt(nn,theta,3,-esu,"# Ultimate by Steel Bar")
+                self.limitation(-99,-99)
+
+            mx.append(mux)
+            my.append(muy)
+
+            if eesmin_u < -esa:
+                self.limitation(-99,pu)
+                comment, pa , ma_x, ma_y, eemax_a, eemin_a, eesmax_a, eesmin_a, ecmin_a =\
+                    self.solveBySt(nn,theta,3, -esa,"# Allowable by Steel Bar")
+                self.limitation(-99,-99)
+            else:
+                ma_x = mux
+                ma_y = muy
+
+            mx2.append(ma_x)
+            my2.append(ma_y)
+
+
+        mx.append(mx[0])
+        my.append(my[0])
+        mx2.append(mx2[0])
+        my2.append(my2[0])
+
+
+        xmax = max( abs(np.max(mx)), abs(np.min(mx)) )
+        ymax = max( abs(np.max(my)), abs(np.min(my)) )
+        xymax = max ( xmax, ymax ) * 1.2
+
+        # plot
+        ####################
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+
+        ax.plot(mx,my,label='ultimate',c='black')
+        ax.plot(mx2,my2,label='steel bar at allowable',c='black',linestyle='dotted')
+        #ax.scatter(mx,my)
+
+        ax.axhline(y=0,color='black',linewidth=0.5,linestyle='--')
+        ax.axvline(x=0,color='black',linewidth=0.5,linestyle='--')
+        ax.legend(fontsize=8)
+        ax.grid()
+
+        ax.set_xlim(-xymax,xymax)
+        ax.set_ylim(-xymax,xymax)
+
+        ax.set_xlabel("Mx [kN.m]",fontsize=8)
+        ax.set_ylabel("My [kN.m]",fontsize=8)
+        ax.tick_params(labelsize="8")
+        ax.set_aspect('equal')
+
+        ax.grid()
+
+        screen.draw()
+
+        return mx,my
+
+
+    """
     ########################################################################
     # 軸力一定時において、thを動かして、Mx-My関係を求める。
+    # update, 2022/02/04 , to be no used
 
     def mxmy(self,nn,idr,e,ndiv,ax,screen):
 
@@ -910,7 +1078,8 @@ class Fiber:
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
 
-        ax.plot(mx,my)
+        ax.plot(mx,my,label='ultimate')
+        ax.plot(mx2,my2,label='steel bar at allowable')
         #ax.scatter(mx,my)
 
         ax.axhline(y=0,color='black',linewidth=0.5,linestyle='--')
@@ -924,13 +1093,14 @@ class Fiber:
         ax.set_xlabel("Mx [kN.m]",fontsize=8)
         ax.set_ylabel("My [kN.m]",fontsize=8)
         ax.tick_params(labelsize="8")
-        ax.set_aspect('equal')
+        plt.ax.set_aspect('equal')
 
         ax.grid()
 
         screen.draw()
 
         return mx,my
+    """
 
     ########################################################################
     # Solve Fiber analysis
