@@ -3,13 +3,39 @@
 
 ![icon](./icon/fibGet.png)
 
+----------------
+
 ![Image](./images/screen.png)
+
+----------------
 
 # Features
 - Fiber Model Analysis for the reinforced concrete section
 - Concrete: Fafitis and Shah Model
 - Steel   : Bi-Linear Model
 - Capable of making pdf report
+
+----------------
+# Table of content
+- [1. Input data/Sample](#1-input-data-sample)
+  - [1.1 control file](#11-control-file)
+  - [1.2 section file](#12-section-file)
+	- [1.2.1 MATE](#121-mate)
+	- [1.2.2 CAPA](#122-capa)
+	- [1.2.3 FIBE](#123-fibe)
+	- [1.2.4 REBA](#124-reba)
+- [2. Ouput](#2-output)
+  - [2.1 mp file](#21-mp-file)
+  - [2.2 cap file](#22-cap-file)
+- [3. Report](#3-report)
+- [4. Souse code](#4-source-code)
+  - [4.1 Python Scripts](#41-python-scripts)
+  - [4.2 Others](#42-others)
+- [5. Usage](#5-usage)
+  - [5.1 for unix](#51-for-unix)
+  - [5.2 for Windows](#52-for-windows)
+- [6. FibGet](#6-fibget)
+- [Develop memo](#develop-memo)
 
 ----------------
 
@@ -31,7 +57,7 @@ Two files are needed for the fiber analyis.
 | section file | sec.csv |
 
 
-## 1-1. control file
+## 1.1 control file
 example csv data
 
 ``` txt
@@ -61,9 +87,9 @@ CW10045,  ./sec/cw1.csv,    0.0, 8466, 0.003, 100, 0.003, 0.01, Fc60/20-D41(SD49
 
 ----------------
 
-## 1-2. csvfile/ section file
+## 1.2 section file
 
-Four specified cards are needed.
+Four specified cards are needed for the csv section file.
 
 | Item | Control for          |
 | --   | :--                  |
@@ -72,7 +98,7 @@ Four specified cards are needed.
 | FIBE | concrete fiber model |
 | REBA | steel bar            |
 
-### 1-2-1. MATE
+### 1.2.1 MATE
 material select
 example
 
@@ -97,7 +123,7 @@ MATE, 2, 490.0
 
 ![Image](./images/steel.png)
 
-### 1-2-2. CAPA
+### 1.2.2 CAPA
 capacity control
 example
 ``` txt
@@ -111,7 +137,7 @@ CAPA, 1, 28.0, 2, 490.0
 | type_s | -     | type num. of steel bar material |
 | fy     | N/mm2 | allowable steel bar strength    |
 
-### 1-2-3. FIBE
+### 1.2.3 FIBE
 Concrete fiber geometry data specified as the concrete fiber element by rectanglular shapes.
 
 example data.
@@ -150,7 +176,7 @@ MATE, 2, 490.0   -----> num=1
 ![fibe](./images/fibe.jpeg)
 
 
-### 1-2-4. REBA
+### 1.2.4 REBA
 steel bar geometry data
 example
 ``` txt
@@ -198,7 +224,9 @@ MATE, 2, 490.0   -----> num=1
 .                -----> num=5
 ```
 
-## 2. Output
+----------------
+
+# 2. Output
 
 | outputfile  | content          | remark   |
 |:------------|:-----------------|:---------|
@@ -207,7 +235,7 @@ MATE, 2, 490.0   -----> num=1
 | \*model.png | model            | png file |
 | \*mp.png    | M-φ relationship | png file |
 
-### 2-1. \*\*mp file
+## 2.1 mp file
 
 Header
 ``` csv
@@ -224,10 +252,15 @@ p,mx,my,emax,emin,esmax,esmin,ec,xn
 | esmax | -     | maximum strain in steel bar / compression bar            |        |
 | esmin | -     | minimum strain in steel bar / tention bar                |        |
 | ec    | -     | compressive strain of concrete at extreem fiber          |        |
-| xn    | mm     | neutral axis distance from the extreem compressive fiber |        |
+| xn    | mm    | neutral axis distance from the extreem compressive fiber |        |
 
 
-### 2-2. \*\*cap file
+## 2.2 cap file
+
+Header
+``` csv
+p,mx,my,emax,emin,esmax,esmin,ec,xn
+```
 
 | row | content            |
 |:----|--------------------|
@@ -235,17 +268,19 @@ p,mx,my,emax,emin,esmax,esmin,ec,xn
 | 2   | allowable capacity |
 | 3   | ultimate capacity  |
 
+----------------
 
-## 3. Report
+# 3. Report
 fibGet give pdf report by pushing report button
 ![Image](./images/report.png)
 
+----------------
 
-## 4. Source code
+# 4. Source code
 
 coded by ptyhon
 
-### 4-1. Python Scripts
+## 4.1 Python Scripts
 ``` SHELL
 ├── main.py
 ├── gui.py
@@ -257,7 +292,7 @@ coded by ptyhon
 
 ```
 
-### 4-2. Others
+## 4.2 Others
 ``` SHELL
 ├── gui.wxg
 ├── sample_data
@@ -287,14 +322,16 @@ coded by ptyhon
 │   ├── fibGet.png
 ```
 
-## 5. Usage
+----------------
 
-### 5-1. for unix
+# 5. Usage
+
+## 5.1 for unix
 ``` SHELL
 > python3 main.py
 ```
 
-### 5-2. For Windows
+## 5.2 For Windows
 By power shell
 ``` DOS
 > pyinstaller main.py --onefile --noconsole --icon=icons/fibGet.ico
@@ -302,6 +339,61 @@ By power shell
 > mv ./fonts ./dist/fonts
 > ./dist/main/main.exe
 ```
+----------------
+
+# 6. fibGet
+
+fibGet.py
+
+| class    | description                      |
+|:---------|:---------------------------------|
+| Fiber()  | calculation of the fiber model   |
+| AftFib() | data organization after analysis |
+
+## 6.1 Fiber
+
+| method                            | description                                                       |
+|:----------------------------------|-------------------------------------------------------------------|
+| init(xx1,xx2,yy1,yy2,mate1,mate2) | init                                                              |
+| limitation(kappa_min,kappa_max)   |                                                                   |
+| rotation(idr,th)                  |                                                                   |
+| getModel(xx1,xx2,...)             |                                                                   |
+| viewModel(r_mmodel,...)           |                                                                   |
+| viewModelRep(..)                  | make figure of the model to png file                              |
+| viewModelGui(..)                  | make figure of the model to GUI                                   |
+| createMatrix_steel(..)            | make matrix fo the steel bar                                      |
+| createMatrix                      | make matrix of the concrete element                               |
+| out                               | no use                                                            |
+| out_add                           | no use                                                            |
+| nn0                               | axial force by specified strain                                   |
+| e0                                | compressive axial strain by specified axial force                 |
+| view_sig_c                        | make conter figure by compressibe strain & neutral axis           |
+| nnc_c                             | axial force by compressibe strain & neutral axis                  |
+| mn                                | under develop                                                     |
+| mn_ec_xn                          | bending moment and curvature by compressibe strain & neutral axis |
+| xnn                               | curvature by comp. strain & axial force                           |
+| make_cont                         | make conter figure by comp. strain                                |
+| soslveBySt                        | bending moment by specified fiber                                 |
+| mnGen                             | generate mn data                                                  |
+| mxmy_double                       | mx-my relationship by ecu                                         |
+| solve                             | M-p relationship by specified axial force                         |
+
+### 6.1.1 init
+| variable | description |
+|:---------|-------------|
+| xx1      |             |
+| xx2      |             |
+| yy1      |             |
+| yy2      |             |
+| mate1    |             |
+| mate2    |             |
+
+### 6.1.2 Fiber().limitation(kappa_min,kappa_max)
+
+
+## 6.2 AftFib
+
+----------------
 
 # Develop memo
 ## 2022.01.28 modified, m_()_m
