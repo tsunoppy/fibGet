@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import ScalarFormatter
 
-import aijRc
-import prop
+import aijRc  # propeties of the steel bar material
+import prop   # non-linear propeties
 import pandas as pd
 import store
 import sqlite3
@@ -246,7 +246,8 @@ class Fiber:
             c.append(\
                      patches.Circle(\
                                     xy=(self.xs[i],self.ys[i]),\
-                                    radius=self.dia[i]/2.0, ec='r', fill=False ))
+                                    #radius=self.dia[i]/2.0, ec='r', fill=False ))
+                                    radius=self.dia[i]/2.0, fc='r' ))
         for i in range(0,len(self.xs)):
             ax.add_patch(c[i])
 #                                    radius=self.dia[i]/2.0, fc='r', ec='r'))
@@ -283,7 +284,8 @@ class Fiber:
             c.append(\
                      patches.Circle(\
                                     xy=(self.xs[i],self.ys[i]),\
-                                    radius=self.dia[i]/2.0, fc='g', ec='r'))
+                                    #radius=self.dia[i]/2.0, fc='g', ec='r'))
+                                    radius=self.dia[i]/2.0, fc='r'))
         for i in range(0,len(self.xs)):
             ax.add_patch(c[i])
 
@@ -942,6 +944,11 @@ class Fiber:
 
         ax.plot(np.abs(mx),nd,label='Mx',c='black')
         ax.plot(np.abs(my),nd,label='My',c='black',linestyle='dotted')
+
+        print("MN data")
+        for i in range(0,len(nd)):
+            print(nd[i],mx[i],my[i])
+
         #ax.scatter(mx,my)
 
         #ax.axhline(y=0,color='black',linewidth=0.5,linestyle='--')
@@ -1522,39 +1529,37 @@ class AftFib:
             #screen.tight_layout()
             #screen.show()
             #print("under dev steel??")
-            
-
-"""
-readFile = os.path.join(os.path.dirname(__file__), 'input3.csv')
-theta,ecumax,ndiv,nn,ecu,esu,\
-    mate1,mate2,\
-    xx1,yy1,xx2,yy2,ndimx,ndimy,fc,\
-    ids,nx,ny,dtx,dty,dia,fy,\
-    =\
-    read_data(readFile)
-
-print("------------------------------")
-
-obj = Fiber(xx1,xx2,yy1,yy2,mate1,mate2)
-
-if obj.getModel(xx1,xx2,yy1,yy2,ndimx,ndimy,fc,\
-                ids,nx,ny,dtx,dty,dia,fy):
-    obj.getG(xx1,xx2,yy1,yy2)
-    obj.viewModel(0.5)
-    print("Complete Model Making")
-else:
-    del obj
-    obj = Fiber()
-    print("Fail Model Making")
-
-obj.solve(nn,theta,ecumax,ndiv)
-#print( "N  =", obj.nn0(0.2*10**(-3)) )
-#print( "e0 =", obj.e0(9832.0) )
-#obj.nn0(-5.0*10**(-4))
-print("------------------------------")
-#obj.solve(nn,0,0)
-print("Complete")
 
 
+if __name__ == "__main__":
 
-"""
+    readFile = os.path.join(os.path.dirname(__file__), 'input3.csv')
+    theta,ecumax,ndiv,nn,ecu,esu,\
+        mate1,mate2,\
+        xx1,yy1,xx2,yy2,ndimx,ndimy,fc,\
+        ids,nx,ny,dtx,dty,dia,fy,\
+        =\
+        read_data(readFile) # need modified
+
+    print("------------------------------")
+    obj = Fiber(xx1,xx2,yy1,yy2,mate1,mate2)
+
+    if obj.getModel(xx1,xx2,yy1,yy2,ndimx,ndimy,fc,\
+                    ids,nx,ny,dtx,dty,dia,fy):
+        obj.getG(xx1,xx2,yy1,yy2)
+        obj.viewModel(0.5)
+        print("Complete Model Making")
+    else:
+        del obj
+        obj = Fiber()
+        print("Fail Model Making")
+
+    obj.solve(nn,theta,ecumax,ndiv)
+    #print( "N  =", obj.nn0(0.2*10**(-3)) )
+    #print( "e0 =", obj.e0(9832.0) )
+    #obj.nn0(-5.0*10**(-4))
+    print("------------------------------")
+    #obj.solve(nn,0,0)
+    print("Complete")
+
+
