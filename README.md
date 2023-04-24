@@ -334,9 +334,10 @@ coded by ptyhon
 ## 5.2 For Windows
 By power shell
 ``` DOS
-> pyinstaller main.py --onefile --noconsole --icon=icons/fibGet.ico
-> mv ./icon ./dist/icon
-> mv ./fonts ./dist/fonts
+> pyinstaller main.py --onefile --noconsole --icon=icon/fibGet.ico
+> cp ./icon ./dist/icon
+> cp ./fonts ./dist/fonts
+> mkdir ./dist/db
 > ./dist/main/main.exe
 ```
 ----------------
