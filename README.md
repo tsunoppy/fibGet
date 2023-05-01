@@ -33,7 +33,8 @@
   - [4.2 Others](#42-others)
 - [5. Usage](#5-usage)
   - [5.1 for unix](#51-for-unix)
-  - [5.2 for Windows](#52-for-windows)
+  - [5.2 for Windows](#52-for-windows-with-pyinstaller)
+  - [5.3 for Windows Recommend](#53-for-Windows-with-nuitka)
 - [6. FibGet](#6-fibget)
 - [Develop memo](#develop-memo)
 
@@ -331,7 +332,7 @@ coded by ptyhon
 > python3 main.py
 ```
 
-## 5.2 For Windows
+## 5.2 For Windows with pyinstaller
 By power shell
 ``` DOS
 > pyinstaller main.py --onefile --noconsole --icon=icon/fibGet.ico
@@ -339,7 +340,23 @@ By power shell
 > cp ./fonts ./dist/fonts
 > mkdir ./dist/db
 > ./dist/main/main.exe
+
 ```
+
+## 5.3 For Windows with nuitka
+By power shell
+
+``` python
+Change fibget.py, "GetPath()" -> "GetPaths()[0]
+```
+
+``` DOS
+>nuitka --mingw64 --follow-imports --onefile --include-data-dir=.\fonts=fonts --include-data-dir=.\icon=icon --include-data-dir=.\db=db --windows-icon-from-ico=./icon/fibGet.ico main.py
+>./main.exe
+```
+
+
+
 ----------------
 
 # 6. fibGet
@@ -397,6 +414,163 @@ fibGet.py
 ----------------
 
 # Develop memo
+
 ## 2022.01.28 modified, m_()_m
 - modified script for the ultimate capacity at steel stress limitation.
 - modifed linestyle, width, color in matplot
+
+## 2023.04.30 modified, m_()_m
+- modified fiber.py
+- change "linewidth="0.5"" to to "linewidth=0.5"
+
+# Memo
+
+``` shell
+Package                           Version
+--------------------------------- ---------------
+absl-py                           0.15.0
+altgraph                          0.17
+appnope                           0.1.3
+argon2-cffi                       21.3.0
+argon2-cffi-bindings              21.2.0
+astunparse                        1.6.3
+async-generator                   1.10
+attrs                             21.4.0
+backcall                          0.2.0
+beautifulsoup4                    4.11.1
+bleach                            4.1.0
+cached-property                   1.5.2
+cachetools                        4.2.4
+certifi                           2021.10.8
+cffi                              1.15.1
+charset-normalizer                2.0.12
+chromedriver                      2.24.1
+chromedriver-binary               103.0.5060.53.0
+clang                             5.0
+cycler                            0.10.0
+dataclasses                       0.8
+decorator                         5.1.1
+defusedxml                        0.7.1
+entrypoints                       0.4
+et-xmlfile                        1.0.1
+flatbuffers                       1.12
+gast                              0.4.0
+geojson                           2.5.0
+google-auth                       1.35.0
+google-auth-oauthlib              0.4.6
+google-pasta                      0.2.0
+graphviz                          0.19.1
+grpcio                            1.44.0
+h5py                              3.1.0
+idna                              3.3
+importlib-metadata                4.8.3
+ipykernel                         5.5.6
+ipython                           7.16.3
+ipython-genutils                  0.2.0
+ipywidgets                        7.7.1
+jdcal                             1.4.1
+jedi                              0.17.2
+Jinja2                            3.0.3
+joblib                            1.1.0
+jsonschema                        3.2.0
+jupyter                           1.0.0
+jupyter-client                    7.1.2
+jupyter-console                   6.4.3
+jupyter-contrib-core              0.3.3
+jupyter-contrib-nbextensions      0.5.1
+jupyter-core                      4.9.2
+jupyter-highlight-selected-word   0.2.0
+jupyter-latex-envs                1.4.6
+jupyter-nbextensions-configurator 0.4.1
+jupyterlab-pygments               0.1.2
+jupyterlab-widgets                1.1.1
+keras                             2.6.0
+Keras-Preprocessing               1.1.2
+kiwisolver                        1.3.1
+lxml                              4.9.1
+macholib                          1.14
+Markdown                          3.3.6
+MarkupSafe                        2.0.1
+matplotlib                        3.3.2
+mistune                           0.8.4
+modulegraph                       0.18
+mpmath                            1.1.0
+nbclient                          0.5.9
+nbconvert                         6.0.7
+nbformat                          5.1.3
+nest-asyncio                      1.5.5
+notebook                          6.4.10
+numpy                             1.19.4
+oauthlib                          3.2.0
+openpyxl                          3.0.5
+opt-einsum                        3.3.0
+packaging                         21.3
+pandas                            1.1.5
+pandocfilters                     1.5.0
+parso                             0.7.1
+pexpect                           4.8.0
+pickleshare                       0.7.5
+Pillow                            8.0.1
+pip                               21.3.1
+prometheus-client                 0.14.1
+prompt-toolkit                    3.0.30
+protobuf                          3.19.4
+ptyprocess                        0.7.0
+py2app                            0.22
+pyasn1                            0.4.8
+pyasn1-modules                    0.2.8
+pycparser                         2.21
+pydotplus                         2.0.2
+Pygments                          2.12.0
+pyinstaller                       4.1
+pyinstaller-hooks-contrib         2020.10
+pyparsing                         2.4.7
+PyQt5                             5.15.2
+PyQt5-sip                         12.8.1
+pyrsistent                        0.18.0
+python-dateutil                   2.8.1
+pytz                              2020.5
+PyYAML                            6.0
+pyzmq                             23.2.0
+qtconsole                         5.2.2
+QtPy                              2.0.1
+reportlab                         3.5.55
+requests                          2.27.1
+requests-oauthlib                 1.3.1
+rsa                               4.8
+scikit-learn                      0.24.2
+scipy                             1.5.4
+seaborn                           0.11.2
+selenium                          3.141.0
+Send2Trash                        1.8.0
+setuptools                        59.6.0
+Shapely                           1.8.0
+six                               1.15.0
+sklearn                           0.0
+soupsieve                         2.3.2.post1
+sympy                             1.7.1
+tensorboard                       2.6.0
+tensorboard-data-server           0.6.1
+tensorboard-plugin-wit            1.8.1
+tensorflow                        2.6.2
+tensorflow-estimator              2.6.0
+termcolor                         1.1.0
+terminado                         0.12.1
+testpath                          0.6.0
+threadpoolctl                     3.1.0
+tk                                0.1.0
+tornado                           6.1
+traitlets                         4.3.3
+turfpy                            0.0.7
+typing-extensions                 3.7.4.3
+urllib3                           1.26.8
+wcwidth                           0.2.5
+webencodings                      0.5.1
+Werkzeug                          2.0.3
+wheel                             0.37.1
+widgetsnbextension                3.6.1
+wrapt                             1.12.1
+wxPython                          4.1.0
+xlrd                              2.0.1
+zipp                              3.6.0
+```
